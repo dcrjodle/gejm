@@ -8,13 +8,16 @@ import styles from '../styles/Game.module.scss';
 
 const Game: React.FC = () => {
   const keysRef = useKeyboard();
-  useGameLoop(keysRef);
+  const { gameEngine, configService } = useGameLoop(keysRef);
 
   return (
     <div className={styles.gameContainer}>
       <div className={styles.gameWrapper}>
-        <GameCanvas className={styles.gameCanvas} />
-        <GameUI />
+        <GameCanvas 
+          className={styles.gameCanvas} 
+          gameEngine={gameEngine} 
+        />
+        <GameUI configService={configService} />
         <GameOverlay />
       </div>
     </div>

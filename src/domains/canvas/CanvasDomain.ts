@@ -1,0 +1,176 @@
+import { Player, Enemy, Bullet, Particle, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { CanvasConfig } from '../../engine/types/config';
+
+export interface RenderableEntity {
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  life?: number;
+}
+
+export class CanvasDomain implements DomainInterface<RenderableEntity> {
+  private config: CanvasConfig;
+  private events: GameEvent[] = [];
+
+  constructor(config: CanvasConfig) {
+    this.config = config;
+  }
+
+  update(entities: RenderableEntity[], deltaTime: number, gameState: any): DomainUpdate<RenderableEntity> {
+    // Canvas domain doesn't modify entities, just renders them
+    return { entities, events: this.events };
+  }
+
+  configure(config: CanvasConfig): void {
+    this.config = { ...this.config, ...config };
+  }
+
+  getEvents(): GameEvent[] {
+    return [...this.events];
+  }
+
+  clearEvents(): void {
+    this.events = [];
+  }
+
+  render(
+    ctx: CanvasRenderingContext2D,
+    player: Player,
+    enemies: Enemy[],
+    bullets: Bullet[],
+    particles: Particle[]
+  ): void {
+    // Clear canvas
+    ctx.fillStyle = this.config.backgroundColor;
+    ctx.fillRect(0, 0, this.config.width, this.config.height);
+
+    // Draw grid if enabled
+    if (this.config.showGrid) {
+      this.drawGrid(ctx);
+    }
+
+    // Draw particles first (behind everything)
+    particles.forEach(particle => {
+      this.drawParticle(ctx, particle);
+    });
+
+    // Draw enemies
+    enemies.forEach(enemy => {
+      this.drawEnemy(ctx, enemy);
+    });
+
+    // Draw bullets
+    bullets.forEach(bullet => {
+      this.drawBullet(ctx, bullet);
+    });
+
+    // Draw player
+    this.drawPlayer(ctx, player);
+
+    // Draw player health bar
+    this.drawHealthBar(ctx, player);
+  }
+
+  private drawGrid(ctx: CanvasRenderingContext2D): void {
+    ctx.strokeStyle = this.config.gridColor;
+    ctx.lineWidth = 1;
+    
+    for (let x = 0; x <= this.config.width; x += this.config.gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, this.config.height);
+      ctx.stroke();
+    }
+    
+    for (let y = 0; y <= this.config.height; y += this.config.gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(this.config.width, y);
+      ctx.stroke();
+    }
+  }
+
+  private drawParticle(ctx: CanvasRenderingContext2D, particle: Particle): void {
+    ctx.fillStyle = particle.color;
+    ctx.globalAlpha = particle.life;
+    ctx.fillRect(
+      particle.x - particle.size / 2,
+      particle.y - particle.size / 2,
+      particle.size,
+      particle.size
+    );
+    ctx.globalAlpha = 1;
+  }
+
+  private drawEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy): void {
+    ctx.fillStyle = enemy.color;
+    ctx.shadowColor = enemy.color;
+    ctx.shadowBlur = 10;
+    ctx.fillRect(
+      enemy.x - enemy.size / 2,
+      enemy.y - enemy.size / 2,
+      enemy.size,
+      enemy.size
+    );
+    ctx.shadowBlur = 0;
+  }
+
+  private drawBullet(ctx: CanvasRenderingContext2D, bullet: Bullet): void {
+    ctx.fillStyle = bullet.color;
+    ctx.shadowColor = bullet.color;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(
+      bullet.x - bullet.size / 2,
+      bullet.y - bullet.size / 2,
+      bullet.size,
+      bullet.size
+    );
+    ctx.shadowBlur = 0;
+  }
+
+  private drawPlayer(ctx: CanvasRenderingContext2D, player: Player): void {
+    ctx.fillStyle = player.color;
+    ctx.shadowColor = player.color;
+    ctx.shadowBlur = 15;
+    ctx.fillRect(
+      player.x - player.size / 2,
+      player.y - player.size / 2,
+      player.size,
+      player.size
+    );
+    ctx.shadowBlur = 0;
+  }
+
+  private drawHealthBar(ctx: CanvasRenderingContext2D, player: Player): void {
+    const healthBarWidth = 20;
+    const healthBarHeight = 3;
+    const healthPercentage = player.health / player.maxHealth;
+    
+    // Background
+    ctx.fillStyle = '#333';
+    ctx.fillRect(
+      player.x - healthBarWidth / 2,
+      player.y - player.size / 2 - 8,
+      healthBarWidth,
+      healthBarHeight
+    );
+    
+    // Health bar
+    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : 
+                   healthPercentage > 0.2 ? '#ffff00' : '#ff0000';
+    ctx.fillRect(
+      player.x - healthBarWidth / 2,
+      player.y - player.size / 2 - 8,
+      healthBarWidth * healthPercentage,
+      healthBarHeight
+    );
+  }
+
+  getCanvasSize(): { width: number; height: number } {
+    return {
+      width: this.config.width,
+      height: this.config.height
+    };
+  }
+}

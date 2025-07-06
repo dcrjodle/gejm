@@ -2,7 +2,11 @@ import React from 'react';
 import { useGameContext } from '../context/GameContext';
 import styles from '../styles/GameUI.module.scss';
 
-const GameUI: React.FC = () => {
+interface GameUIProps {
+  configService?: any;
+}
+
+const GameUI: React.FC<GameUIProps> = ({ configService }) => {
   const { state } = useGameContext();
 
   return (

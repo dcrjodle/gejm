@@ -1,178 +1,93 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGameContext } from '../context/GameContext';
-import { 
-  checkCollision, 
-  isInBounds, 
-  clamp, 
-  createEnemy, 
-  createBullet, 
-  createExplosion,
-  updateEnemyMovement,
-  updateBullet,
-  updateParticle,
-  calculateLevelUp
-} from '../utils/gameUtils';
+import { GameEngine } from '../engine/GameEngine';
+import { ConfigService } from '../services/ConfigService';
+import { defaultGameConfig } from '../config/defaultConfig';
 
 export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boolean>>) => {
   const { state, dispatch } = useGameContext();
   const animationRef = useRef<number>();
-  const lastShotRef = useRef<number>(0);
-  const lastEnemySpawnRef = useRef<number>(0);
+  const engineRef = useRef<GameEngine>();
+  const configServiceRef = useRef<ConfigService>();
   const stateRef = useRef(state);
+  const lastTimeRef = useRef<number>(0);
   
   // Update state ref
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
 
-  const shoot = useCallback(() => {
-    const now = Date.now();
-    const currentState = stateRef.current;
-    if (now - lastShotRef.current > 300) { // 300ms cooldown
-      const bullet = createBullet(currentState.player);
-      dispatch({ type: 'ADD_BULLET', payload: bullet });
-      lastShotRef.current = now;
+  // Initialize engine and config service
+  useEffect(() => {
+    if (!engineRef.current) {
+      configServiceRef.current = new ConfigService(defaultGameConfig);
+      engineRef.current = new GameEngine(configServiceRef.current.getConfig());
+      
+      // Subscribe to config changes
+      configServiceRef.current.subscribe((newConfig) => {
+        engineRef.current?.configure(newConfig);
+      });
     }
-  }, [dispatch]);
-
-  const spawnEnemy = useCallback(() => {
-    const now = Date.now();
-    const currentState = stateRef.current;
-    const timeSinceLastSpawn = now - lastEnemySpawnRef.current;
-    
-    if (timeSinceLastSpawn > 2000 && currentState.enemies.length < 5) { // 2s spawn rate, max 5 enemies
-      const enemy = createEnemy(currentState.canvasWidth, currentState.canvasHeight);
-      dispatch({ type: 'ADD_ENEMY', payload: enemy });
-      lastEnemySpawnRef.current = now;
-    }
-  }, [dispatch]);
-
+  }, []);
 
   useEffect(() => {
-    const gameLoop = () => {
+    const gameLoop = (currentTime: number) => {
       const currentState = stateRef.current;
-      if (!currentState.gameRunning) {
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+
+      if (!currentState.gameRunning || !engineRef.current) {
         animationRef.current = requestAnimationFrame(gameLoop);
         return;
       }
 
-      // Handle player movement
-      let newX = currentState.player.x;
-      let newY = currentState.player.y;
+      // Convert keys to simple object for engine
+      const keysPressed: Record<string, boolean> = {};
+      Object.keys(keysRef.current).forEach(key => {
+        keysPressed[key] = keysRef.current[key];
+      });
 
-      if (keysRef.current['w']) newY -= currentState.player.speed;
-      if (keysRef.current['s']) newY += currentState.player.speed;
-      if (keysRef.current['a']) newX -= currentState.player.speed;
-      if (keysRef.current['d']) newX += currentState.player.speed;
-      if (keysRef.current[' ']) {
-        shoot();
-      }
-
-      // Keep player in bounds
-      newX = clamp(newX, currentState.player.size, currentState.canvasWidth - currentState.player.size);
-      newY = clamp(newY, currentState.player.size, currentState.canvasHeight - currentState.player.size);
-
-      if (newX !== currentState.player.x || newY !== currentState.player.y) {
-        dispatch({ type: 'UPDATE_PLAYER', payload: { x: newX, y: newY } });
-      }
-
-      // Spawn enemies
-      spawnEnemy();
-
-      // Update bullets, enemies, and particles
-      let updatedBullets = currentState.bullets
-        .map(updateBullet)
-        .filter(bullet => isInBounds(bullet.x, bullet.y, currentState.canvasWidth, currentState.canvasHeight));
-
-      let updatedEnemies = currentState.enemies.map(enemy => updateEnemyMovement(enemy, currentState.player));
-
-      let updatedParticles = currentState.particles
-        .map(updateParticle)
-        .filter(particle => particle.life > 0);
-
-      // Check bullet-enemy collisions
-      let experienceGained = 0;
+      // Update engine
+      engineRef.current.update(deltaTime, keysPressed);
       
-      for (let i = updatedBullets.length - 1; i >= 0; i--) {
-        const bullet = updatedBullets[i];
-        for (let j = updatedEnemies.length - 1; j >= 0; j--) {
-          const enemy = updatedEnemies[j];
-          if (checkCollision(bullet, enemy)) {
-            // Create explosion particles
-            updatedParticles.push(...createExplosion(enemy.x, enemy.y, enemy.color));
-            
-            // Remove bullet and enemy
-            updatedBullets.splice(i, 1);
-            updatedEnemies.splice(j, 1);
-            
-            // Gain experience
-            experienceGained += enemy.experienceValue;
-            break;
-          }
-        }
+      // Get updated game state from engine
+      const newGameState = engineRef.current.getGameState();
+      
+      // Check for level up events
+      const events = engineRef.current.getEvents();
+      const levelUpEvent = events.find(e => e.type === 'PLAYER_LEVEL_UP');
+      if (levelUpEvent) {
+        dispatch({ type: 'SET_LEVEL_UP', payload: true });
+        setTimeout(() => dispatch({ type: 'SET_LEVEL_UP', payload: false }), 2000);
       }
 
-      // Check player-enemy collisions
-      for (let i = updatedEnemies.length - 1; i >= 0; i--) {
-        const enemy = updatedEnemies[i];
-        if (checkCollision(currentState.player, enemy)) {
-          // Create explosion particles
-          updatedParticles.push(...createExplosion(enemy.x, enemy.y, enemy.color));
-          
-          // Remove enemy and damage player
-          updatedEnemies.splice(i, 1);
-          const newHealth = currentState.player.health - 1;
-          
-          dispatch({ type: 'UPDATE_PLAYER', payload: { health: newHealth } });
-          
-          if (newHealth <= 0) {
-            dispatch({ type: 'SET_GAME_OVER', payload: true });
-          }
-        }
+      // Update React state if needed
+      if (JSON.stringify(currentState.player) !== JSON.stringify(newGameState.player)) {
+        dispatch({ type: 'UPDATE_PLAYER', payload: newGameState.player });
+      }
+      
+      if (JSON.stringify(currentState.enemies) !== JSON.stringify(newGameState.enemies)) {
+        dispatch({ type: 'UPDATE_ENEMIES', payload: newGameState.enemies });
+      }
+      
+      if (JSON.stringify(currentState.bullets) !== JSON.stringify(newGameState.bullets)) {
+        dispatch({ type: 'UPDATE_BULLETS', payload: newGameState.bullets });
+      }
+      
+      if (JSON.stringify(currentState.particles) !== JSON.stringify(newGameState.particles)) {
+        dispatch({ type: 'UPDATE_PARTICLES', payload: newGameState.particles });
       }
 
-      // Update experience and level
-      if (experienceGained > 0) {
-        const newExperience = currentState.player.experience + experienceGained;
-        const { level, experienceToNext } = calculateLevelUp(currentState.player.level, newExperience);
-        
-        if (level > currentState.player.level) {
-          dispatch({ type: 'SET_LEVEL_UP', payload: true });
-          setTimeout(() => dispatch({ type: 'SET_LEVEL_UP', payload: false }), 2000);
-          
-          // Level up bonuses
-          dispatch({ 
-            type: 'UPDATE_PLAYER', 
-            payload: { 
-              level,
-              experience: newExperience,
-              experienceToNext,
-              maxHealth: currentState.player.maxHealth + 1,
-              health: currentState.player.maxHealth + 1,
-              speed: currentState.player.speed + 0.2
-            }
-          });
-        } else {
-          dispatch({ 
-            type: 'UPDATE_PLAYER', 
-            payload: { 
-              experience: newExperience,
-              experienceToNext
-            }
-          });
-        }
+      if (newGameState.gameOver !== currentState.gameOver) {
+        dispatch({ type: 'SET_GAME_OVER', payload: newGameState.gameOver });
       }
 
-      // Update game state only if needed
-      if (currentState.bullets.length > 0 || updatedBullets.length > 0) {
-        dispatch({ type: 'UPDATE_BULLETS', payload: updatedBullets });
+      if (newGameState.gameRunning !== currentState.gameRunning) {
+        dispatch({ type: 'SET_GAME_RUNNING', payload: newGameState.gameRunning });
       }
-      if (currentState.enemies.length > 0 || updatedEnemies.length > 0) {
-        dispatch({ type: 'UPDATE_ENEMIES', payload: updatedEnemies });
-      }
-      if (currentState.particles.length > 0 || updatedParticles.length > 0) {
-        dispatch({ type: 'UPDATE_PARTICLES', payload: updatedParticles });
-      }
+
+      // Clear engine events
+      engineRef.current.clearEvents();
 
       animationRef.current = requestAnimationFrame(gameLoop);
     };
@@ -184,7 +99,12 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [shoot, spawnEnemy, dispatch, keysRef]);
+  }, [dispatch, keysRef]);
 
-  return { animationRef };
+  // Expose engine and config service for external use
+  return { 
+    animationRef,
+    gameEngine: engineRef.current,
+    configService: configServiceRef.current
+  };
 };

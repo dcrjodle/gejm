@@ -2,8 +2,8 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { GameState, GameAction, Player } from '../types/game';
 
 const initialPlayer: Player = {
-  x: 400,
-  y: 300,
+  x: 600,
+  y: 400,
   size: 8,
   color: '#00ffff',
   health: 3,
@@ -22,8 +22,8 @@ const initialState: GameState = {
   gameRunning: true,
   gameOver: false,
   levelUp: false,
-  canvasWidth: 800,
-  canvasHeight: 600
+  canvasWidth: 1200,
+  canvasHeight: 800
 };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
