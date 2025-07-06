@@ -103,6 +103,13 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
         setTimeout(() => dispatch({ type: 'SET_LEVEL_UP', payload: false }), 2000);
       }
 
+      // Check for pause events and force re-render
+      const pauseEvent = events.find(e => e.type === 'GAME_PAUSED' || e.type === 'GAME_RESUMED');
+      if (pauseEvent) {
+        // Force a re-render by dispatching a dummy action
+        dispatch({ type: 'SET_GAME_RUNNING', payload: currentState.gameRunning });
+      }
+
       // Update React state if needed
       if (JSON.stringify(currentState.player) !== JSON.stringify(newGameState.player)) {
         dispatch({ type: 'UPDATE_PLAYER', payload: newGameState.player });

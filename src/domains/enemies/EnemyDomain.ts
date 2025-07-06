@@ -159,4 +159,13 @@ export class EnemyDomain implements DomainInterface<Enemy> {
       waveSize: this.config.waveSize
     };
   }
+
+  reset(): void {
+    this.lastSpawnTime = 0;
+    this.currentWaveEnemiesSpawned = 0;
+    this.currentWaveEnemiesAlive = 0;
+    this.waveInProgress = false;
+    this.waveReadyToStart = true;
+    this.clearEvents();
+  }
 }

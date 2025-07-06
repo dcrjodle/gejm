@@ -156,10 +156,17 @@ The current game provides an excellent foundation with:
   - Text input interface (200 character limit)
   - Resource cost calculation (1-3 Quantum Cores)
   - LLM integration for prayer processing
-- **Divine Responses:**
-  - Temporary buffs (+50% damage for 3 waves)
-  - Permanent upgrades (stat bonuses)
-  - Special effects (friendly units, resource multiplication)
+- **LLM Request Processing:**
+  - LLM analyzes user input for reasonableness and game balance
+  - Determines if request is appropriate (not overpowered)
+  - Modifies game configuration to apply user request
+  - **Cannot modify enemies** - LLM restricted from enemy modifications
+- **Divine Responses via Config Modification:**
+  - **Building Creation:** Spawn walls, turrets, defensive structures
+  - **Weapon Enhancements:** Dual weapons, multi-shot, piercing bullets
+  - **Player Abilities:** Temporary shields, speed boosts, damage multipliers
+  - **Resource Effects:** Resource multiplication, collection bonuses
+  - **Environmental Changes:** Particle effects, visual enhancements
 
 #### **Key Files to Create:**
 - `src/domains/divine/DivineInterventionDomain.ts`
@@ -275,6 +282,9 @@ The current game provides an excellent foundation with:
 - Build Church building and interface
 - Implement prayer system with text input
 - Add LLM integration infrastructure (server-side)
+- Implement LLM-driven config modification system
+- Add balance validation for LLM requests
+- Create enemy modification restrictions
 
 ### **Phase 4: Polish & Balance (Weeks 13-16)**
 
@@ -360,7 +370,9 @@ The current game provides an excellent foundation with:
 - **Inappropriate LLM responses**
   - Mitigation: Content filtering, response moderation, fallback responses
 - **Divine intervention system abuse**
-  - Mitigation: Rate limiting, resource caps, request validation
+  - Mitigation: Rate limiting, resource caps, request validation, balance bounds
+- **LLM game-breaking modifications**
+  - Mitigation: Strict validation of config changes, enemy modification restrictions
 - **Difficulty balance frustration**
   - Mitigation: Difficulty options, accessibility features, player feedback
 
@@ -418,6 +430,25 @@ configService.setDivineConfig({
   maxPrayerLength: 200,
   baseCost: 1
 });
+
+// LLM-driven config modification examples
+configService.divineIntervention.spawnBuilding({ 
+  type: 'wall', 
+  position: { x: 400, y: 300 },
+  cost: 8 
+});
+
+configService.divineIntervention.enhancePlayer({ 
+  dualWeapons: true,
+  shield: { duration: 10000, strength: 2 },
+  speedMultiplier: 1.5
+});
+
+configService.divineIntervention.modifyWeapons({ 
+  multiShot: 3,
+  piercing: true,
+  damage: 2
+});
 ```
 
 ### **Extensibility Features**
@@ -446,7 +477,9 @@ The phased approach allows for iterative development and testing, ensuring each 
 
 The most critical success factors are:
 - Maintaining the existing domain architecture patterns
-- Implementing robust LLM integration with proper content filtering
+- Implementing robust LLM integration with proper content filtering and balance validation
+- Creating a secure config modification system that prevents game-breaking changes
+- Restricting LLM access to prevent enemy modifications while allowing creative player enhancements
 - Balancing the complexity of new systems with gameplay fun
 - Ensuring performance remains optimal with increased entity count
 

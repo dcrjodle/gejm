@@ -133,4 +133,11 @@ export class WeaponDomain implements DomainInterface<Bullet> {
   refillAmmo(): void {
     this.currentAmmo = this.config.maxAmmo;
   }
+
+  reset(): void {
+    this.currentAmmo = this.config.maxAmmo;
+    this.lastShotTime = 0;
+    this.lastAmmoRegenTime = 0;
+    this.clearEvents();
+  }
 }

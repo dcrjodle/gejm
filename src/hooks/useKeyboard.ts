@@ -8,8 +8,13 @@ export const useKeyboard = () => {
       const key = event.key.toLowerCase();
       keysRef.current[key] = true;
       
+      // Also store the original key for special keys like Escape
+      if (event.key === 'Escape') {
+        keysRef.current['Escape'] = true;
+      }
+      
       // Prevent default for game keys
-      if (['w', 'a', 's', 'd', ' '].includes(key)) {
+      if (['w', 'a', 's', 'd', ' '].includes(key) || event.key === 'Escape') {
         event.preventDefault();
       }
     };
@@ -17,6 +22,11 @@ export const useKeyboard = () => {
     const handleKeyUp = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
       keysRef.current[key] = false;
+      
+      // Also clear the original key for special keys like Escape
+      if (event.key === 'Escape') {
+        keysRef.current['Escape'] = false;
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);

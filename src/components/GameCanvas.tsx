@@ -29,6 +29,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className, gameEngine }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Auto-focus canvas when component mounts
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.focus();
+    }
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -146,6 +154,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className, gameEngine }) => {
       width={canvasSize.width}
       height={canvasSize.height}
       className={className}
+      tabIndex={0}
     />
   );
 };

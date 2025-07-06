@@ -58,11 +58,13 @@ export class GameEngine {
   update(deltaTime: number, keysPressed: Record<string, boolean>, mouseX?: number, mouseY?: number, mouseClicked?: boolean): void {
     if (!this.gameState.gameRunning) return;
 
-    // Handle pause toggle
+    // Always handle pause toggle, even when paused
     this.handlePauseInput(keysPressed);
     
-    // Skip update if paused
-    if (this.isPaused) return;
+    // Skip game logic update if paused, but still allow rendering
+    if (this.isPaused) {
+      return;
+    }
 
     const gameContext = {
       ...this.gameState,
@@ -263,6 +265,19 @@ export class GameEngine {
   }
 
   resetGame(): void {
+    // Reset all domains to their initial state
+    if (this.weaponDomain && typeof this.weaponDomain.reset === 'function') {
+      this.weaponDomain.reset();
+    }
+    if (this.enemyDomain && typeof this.enemyDomain.reset === 'function') {
+      this.enemyDomain.reset();
+    }
+    
+    // Reset pause state
+    this.isPaused = false;
+    this.lastPauseKeyTime = 0;
+    
+    // Reset game state
     this.initializeGameState();
     this.clearEvents();
     this.clearAllDomainEvents();

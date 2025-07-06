@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useWindowSize } from '../hooks/useWindowSize';
@@ -14,7 +14,8 @@ const Game: React.FC = () => {
   const keysRef = useKeyboard();
   const { gameEngine, configService } = useGameLoop(keysRef);
   const windowSize = useWindowSize();
-
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  
   // Update canvas size when window size changes
   useEffect(() => {
     if (configService) {
@@ -25,6 +26,15 @@ const Game: React.FC = () => {
   const handleResumeGame = () => {
     if (gameEngine) {
       gameEngine.setPaused(false);
+      // Force immediate re-render to hide pause menu
+      forceUpdate();
+      // Focus the canvas to ensure keyboard input works
+      setTimeout(() => {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+          canvas.focus();
+        }
+      }, 0);
     }
   };
 
@@ -32,6 +42,15 @@ const Game: React.FC = () => {
     if (gameEngine) {
       gameEngine.resetGame();
       gameEngine.setPaused(false);
+      // Force immediate re-render to update UI
+      forceUpdate();
+      // Focus the canvas to ensure keyboard input works
+      setTimeout(() => {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+          canvas.focus();
+        }
+      }, 0);
     }
   };
 
