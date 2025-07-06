@@ -19,6 +19,8 @@ export interface EnemyConfig {
   color: string;
   health: number;
   experienceValue: number;
+  waveSize: number;
+  waveSpawnDelay: number;
 }
 
 export interface WeaponConfig {
@@ -27,6 +29,8 @@ export interface WeaponConfig {
   bulletSize: number;
   bulletColor: string;
   damage: number;
+  maxAmmo: number;
+  ammoRegenRate: number; // ammo per second
 }
 
 export interface MovementConfig {
@@ -36,6 +40,7 @@ export interface MovementConfig {
     left: string;
     right: string;
     shoot: string;
+    pause: string;
   };
   friction: number;
   acceleration: number;

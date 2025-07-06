@@ -83,7 +83,7 @@ The game will be available at `http://localhost:3000`
 
 ### Game Balance (Default Settings)
 
-- Canvas: 1200x800px
+- Canvas: Fullscreen (dynamically resizes to window)
 - Enemy spawn rate: 2 seconds, max 5 concurrent
 - Level progression: 10 XP per level
 - Level bonuses: +1 health, +0.2 speed per level
@@ -129,10 +129,9 @@ configService.setMovementConfig({
 });
 
 configService.setCanvasConfig({ 
-  width: 1600, 
-  height: 900,
   backgroundColor: '#001100',  // Dark green background
-  showGrid: false              // Hide grid
+  showGrid: false,             // Hide grid
+  gridSize: 60                 // Larger grid if shown
 });
 
 configService.setParticleConfig({ 
@@ -143,7 +142,7 @@ configService.setParticleConfig({
 
 // Quick adjustments
 configService.adjustDifficulty(1.5);        // 50% harder
-configService.adjustCanvasSize(1600, 900);  // Resize game area
+// Note: Canvas auto-resizes to window, but you can still set custom dimensions
 
 // Full configuration updates
 configService.updateConfig({ 

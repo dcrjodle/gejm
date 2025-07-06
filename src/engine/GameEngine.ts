@@ -6,6 +6,7 @@ import { WeaponDomain } from '../domains/weapons';
 import { MovementDomain } from '../domains/movement';
 import { CanvasDomain } from '../domains/canvas';
 import { ParticleDomain } from '../domains/particles';
+import { ResourceDomain } from '../domains/resources';
 
 export class GameEngine {
   private config: GameConfig;
@@ -15,8 +16,11 @@ export class GameEngine {
   private movementDomain!: MovementDomain;
   private canvasDomain!: CanvasDomain;
   private particleDomain!: ParticleDomain;
+  private resourceDomain!: ResourceDomain;
   private gameState!: GameState;
   private events: GameEvent[] = [];
+  private isPaused: boolean = false;
+  private lastPauseKeyTime: number = 0;
 
   constructor(config: GameConfig) {
     this.config = config;
@@ -31,6 +35,7 @@ export class GameEngine {
     this.movementDomain = new MovementDomain(this.config.movement);
     this.canvasDomain = new CanvasDomain(this.config.canvas);
     this.particleDomain = new ParticleDomain(this.config.particles);
+    this.resourceDomain = new ResourceDomain();
   }
 
   private initializeGameState(): void {
@@ -41,6 +46,7 @@ export class GameEngine {
       enemies: [],
       bullets: [],
       particles: [],
+      resources: [],
       gameRunning: true,
       gameOver: false,
       levelUp: false,
@@ -49,12 +55,20 @@ export class GameEngine {
     };
   }
 
-  update(deltaTime: number, keysPressed: Record<string, boolean>): void {
+  update(deltaTime: number, keysPressed: Record<string, boolean>, mouseX?: number, mouseY?: number): void {
     if (!this.gameState.gameRunning) return;
+
+    // Handle pause toggle
+    this.handlePauseInput(keysPressed);
+    
+    // Skip update if paused
+    if (this.isPaused) return;
 
     const gameContext = {
       ...this.gameState,
       keysPressed,
+      mouseX,
+      mouseY,
       canvasWidth: this.config.canvas.width,
       canvasHeight: this.config.canvas.height
     };
@@ -66,7 +80,7 @@ export class GameEngine {
 
     // Handle shooting
     if (this.movementDomain.isShootKeyPressed(keysPressed)) {
-      const bullet = this.weaponDomain.shoot(this.gameState.player);
+      const bullet = this.weaponDomain.shoot(this.gameState.player, mouseX, mouseY);
       if (bullet) {
         this.gameState.bullets.push(bullet);
       }
@@ -86,6 +100,11 @@ export class GameEngine {
     const particleUpdate = this.particleDomain.update(this.gameState.particles, deltaTime, gameContext);
     this.gameState.particles = particleUpdate.entities;
     this.collectEvents(particleUpdate.events);
+
+    // Update resources
+    const resourceUpdate = this.resourceDomain.update(this.gameState.resources, deltaTime, gameContext);
+    this.gameState.resources = resourceUpdate.entities;
+    this.collectEvents(resourceUpdate.events);
 
     // Handle collisions
     this.handleCollisions();
@@ -115,6 +134,10 @@ export class GameEngine {
           // Create explosion
           const explosionParticles = this.particleDomain.createExplosion(enemy.x, enemy.y, enemy.color);
           this.gameState.particles.push(...explosionParticles);
+          
+          // Create resource drop
+          const resource = this.resourceDomain.createResource(enemy.x, enemy.y, 5);
+          this.gameState.resources.push(resource);
           
           // Remove entities
           this.gameState.bullets.splice(i, 1);
@@ -147,13 +170,44 @@ export class GameEngine {
         this.enemyDomain.destroyEnemy(enemy);
       }
     }
+
+    // Player-resource collisions
+    for (let i = this.gameState.resources.length - 1; i >= 0; i--) {
+      const resource = this.gameState.resources[i];
+      if (this.checkCollision(this.gameState.player, resource)) {
+        // Collect resource
+        this.gameState.player = this.playerDomain.collectResources(this.gameState.player, resource.value);
+        
+        // Remove resource
+        this.gameState.resources.splice(i, 1);
+        
+        // Track event
+        this.resourceDomain.collectResource(resource);
+      }
+    }
   }
 
   private checkCollision(obj1: any, obj2: any): boolean {
-    const dx = obj1.x - obj2.x;
-    const dy = obj1.y - obj2.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < (obj1.size + obj2.size) / 2;
+    // Create hitboxes for both objects
+    const hitbox1 = this.getHitbox(obj1);
+    const hitbox2 = this.getHitbox(obj2);
+    
+    // Check for rectangular collision (AABB - Axis-Aligned Bounding Box)
+    return hitbox1.x < hitbox2.x + hitbox2.width &&
+           hitbox1.x + hitbox1.width > hitbox2.x &&
+           hitbox1.y < hitbox2.y + hitbox2.height &&
+           hitbox1.y + hitbox1.height > hitbox2.y;
+  }
+
+  private getHitbox(obj: any): { x: number; y: number; width: number; height: number } {
+    // Create a square hitbox based on the object's size
+    const halfSize = obj.size / 2;
+    return {
+      x: obj.x - halfSize,
+      y: obj.y - halfSize,
+      width: obj.size,
+      height: obj.size
+    };
   }
 
   private collectEvents(events?: GameEvent[]): void {
@@ -169,6 +223,7 @@ export class GameEngine {
     this.movementDomain.clearEvents();
     this.canvasDomain.clearEvents();
     this.particleDomain.clearEvents();
+    this.resourceDomain.clearEvents();
   }
 
   render(ctx: CanvasRenderingContext2D): void {
@@ -177,7 +232,8 @@ export class GameEngine {
       this.gameState.player,
       this.gameState.enemies,
       this.gameState.bullets,
-      this.gameState.particles
+      this.gameState.particles,
+      this.gameState.resources
     );
   }
 
@@ -223,5 +279,57 @@ export class GameEngine {
 
   setLevelUp(levelUp: boolean): void {
     this.gameState.levelUp = levelUp;
+  }
+
+  startNextWave(): void {
+    this.enemyDomain.startNextWave();
+  }
+
+  isWaveReadyToStart(): boolean {
+    return this.enemyDomain.isWaveReadyToStart();
+  }
+
+  isWaveInProgress(): boolean {
+    return this.enemyDomain.isWaveInProgress();
+  }
+
+  getCurrentWaveStatus(): { enemiesSpawned: number; enemiesAlive: number; waveSize: number } {
+    return this.enemyDomain.getCurrentWaveStatus();
+  }
+
+  getCurrentAmmo(): number {
+    return this.weaponDomain.getCurrentAmmo();
+  }
+
+  getMaxAmmo(): number {
+    return this.weaponDomain.getMaxAmmo();
+  }
+
+  refillAmmo(): void {
+    this.weaponDomain.refillAmmo();
+  }
+
+  private handlePauseInput(keysPressed: Record<string, boolean>): void {
+    const now = Date.now();
+    const pauseKey = this.config.movement.keyBindings.pause;
+    
+    if (keysPressed[pauseKey] && now - this.lastPauseKeyTime > 300) { // 300ms debounce
+      this.isPaused = !this.isPaused;
+      this.lastPauseKeyTime = now;
+      
+      this.events.push({
+        type: this.isPaused ? 'GAME_PAUSED' : 'GAME_RESUMED',
+        data: { paused: this.isPaused },
+        timestamp: now
+      });
+    }
+  }
+
+  isPausedState(): boolean {
+    return this.isPaused;
+  }
+
+  setPaused(paused: boolean): void {
+    this.isPaused = paused;
   }
 }

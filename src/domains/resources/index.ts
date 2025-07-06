@@ -1,0 +1,1 @@
+export { ResourceDomain } from './ResourceDomain';

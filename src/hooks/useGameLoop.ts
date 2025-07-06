@@ -11,6 +11,8 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
   const configServiceRef = useRef<ConfigService>();
   const stateRef = useRef(state);
   const lastTimeRef = useRef<number>(0);
+  const lastPlayerHealthRef = useRef<number>(state.player.health);
+  const mouseRef = useRef<{ x: number; y: number; clicked: boolean }>({ x: 0, y: 0, clicked: false });
   
   // Update state ref
   useEffect(() => {
@@ -21,6 +23,10 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
   useEffect(() => {
     if (!engineRef.current) {
       configServiceRef.current = new ConfigService(defaultGameConfig);
+      
+      // Set initial canvas size to current window dimensions
+      configServiceRef.current.adjustCanvasSize(window.innerWidth, window.innerHeight);
+      
       engineRef.current = new GameEngine(configServiceRef.current.getConfig());
       
       // Subscribe to config changes
@@ -28,6 +34,17 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
         engineRef.current?.configure(newConfig);
       });
     }
+
+    // Add mouse event listener
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseRef.current = { x: event.clientX, y: event.clientY };
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
 
   useEffect(() => {
@@ -35,6 +52,15 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       const currentState = stateRef.current;
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
+
+      // Check if game was reset (player health went from 0 to positive)
+      if (engineRef.current && 
+          lastPlayerHealthRef.current <= 0 && 
+          currentState.player.health > 0 && 
+          !currentState.gameOver) {
+        engineRef.current.resetGame();
+        lastPlayerHealthRef.current = currentState.player.health;
+      }
 
       if (!currentState.gameRunning || !engineRef.current) {
         animationRef.current = requestAnimationFrame(gameLoop);
@@ -48,7 +74,7 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       });
 
       // Update engine
-      engineRef.current.update(deltaTime, keysPressed);
+      engineRef.current.update(deltaTime, keysPressed, mouseRef.current.x, mouseRef.current.y);
       
       // Get updated game state from engine
       const newGameState = engineRef.current.getGameState();
@@ -64,6 +90,7 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       // Update React state if needed
       if (JSON.stringify(currentState.player) !== JSON.stringify(newGameState.player)) {
         dispatch({ type: 'UPDATE_PLAYER', payload: newGameState.player });
+        lastPlayerHealthRef.current = newGameState.player.health;
       }
       
       if (JSON.stringify(currentState.enemies) !== JSON.stringify(newGameState.enemies)) {
@@ -76,6 +103,10 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       
       if (JSON.stringify(currentState.particles) !== JSON.stringify(newGameState.particles)) {
         dispatch({ type: 'UPDATE_PARTICLES', payload: newGameState.particles });
+      }
+      
+      if (JSON.stringify(currentState.resources) !== JSON.stringify(newGameState.resources)) {
+        dispatch({ type: 'UPDATE_RESOURCES', payload: newGameState.resources });
       }
 
       if (newGameState.gameOver !== currentState.gameOver) {
@@ -105,6 +136,7 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
   return { 
     animationRef,
     gameEngine: engineRef.current,
-    configService: configServiceRef.current
+    configService: configServiceRef.current,
+    mouseRef
   };
 };

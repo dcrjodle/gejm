@@ -13,6 +13,13 @@ export interface Size {
   height: number;
 }
 
+export interface Hitbox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface GameObject extends Position {
   size: number;
   color: string;

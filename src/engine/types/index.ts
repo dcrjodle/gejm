@@ -8,6 +8,7 @@ export interface GameState {
   enemies: import('./entities').Enemy[];
   bullets: import('./entities').Bullet[];
   particles: import('./entities').Particle[];
+  resources: import('./entities').Resource[];
   gameRunning: boolean;
   gameOver: boolean;
   levelUp: boolean;

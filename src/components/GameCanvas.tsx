@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useGameContext } from '../context/GameContext';
 
 interface GameCanvasProps {
@@ -9,6 +9,25 @@ interface GameCanvasProps {
 const GameCanvas: React.FC<GameCanvasProps> = ({ className, gameEngine }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { state } = useGameContext();
+  const [canvasSize, setCanvasSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  // Update canvas size when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      setCanvasSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Set initial size
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -124,8 +143,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className, gameEngine }) => {
   return (
     <canvas
       ref={canvasRef}
-      width={state.canvasWidth}
-      height={state.canvasHeight}
+      width={canvasSize.width}
+      height={canvasSize.height}
       className={className}
     />
   );

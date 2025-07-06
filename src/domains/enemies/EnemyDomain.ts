@@ -5,6 +5,10 @@ export class EnemyDomain implements DomainInterface<Enemy> {
   private config: EnemyConfig;
   private events: GameEvent[] = [];
   private lastSpawnTime: number = 0;
+  private currentWaveEnemiesSpawned: number = 0;
+  private currentWaveEnemiesAlive: number = 0;
+  private waveInProgress: boolean = false;
+  private waveReadyToStart: boolean = true;
 
   constructor(config: EnemyConfig) {
     this.config = config;
@@ -16,12 +20,17 @@ export class EnemyDomain implements DomainInterface<Enemy> {
     // Update existing enemies
     const updatedEnemies = entities.map(enemy => this.updateEnemyMovement(enemy, player));
     
-    // Check if we should spawn new enemies
+    // Update wave tracking
+    this.currentWaveEnemiesAlive = updatedEnemies.length;
+    
+    // Check if we should spawn new enemies or start a new wave
     const now = Date.now();
-    if (this.shouldSpawnEnemy(now, updatedEnemies.length)) {
+    if (this.shouldSpawnEnemy(now)) {
       const newEnemy = this.createEnemy(canvasWidth, canvasHeight);
       updatedEnemies.push(newEnemy);
       this.lastSpawnTime = now;
+      this.currentWaveEnemiesSpawned++;
+      this.currentWaveEnemiesAlive++;
       
       this.events.push({
         type: 'ENEMY_SPAWNED',
@@ -45,37 +54,26 @@ export class EnemyDomain implements DomainInterface<Enemy> {
     this.events = [];
   }
 
-  private shouldSpawnEnemy(currentTime: number, currentEnemyCount: number): boolean {
+  private shouldSpawnEnemy(currentTime: number): boolean {
     const timeSinceLastSpawn = currentTime - this.lastSpawnTime;
-    return timeSinceLastSpawn > this.config.spawnRate && 
-           currentEnemyCount < this.config.maxConcurrent;
+    
+    // If wave is in progress, spawn enemies with delay until wave is complete
+    if (this.waveInProgress && this.currentWaveEnemiesSpawned < this.config.waveSize) {
+      return timeSinceLastSpawn > this.config.waveSpawnDelay;
+    }
+    
+    // If wave is complete, mark it as finished and ready for next wave
+    if (this.currentWaveEnemiesSpawned >= this.config.waveSize) {
+      this.waveInProgress = false;
+    }
+    
+    return false;
   }
 
   private createEnemy(canvasWidth: number, canvasHeight: number): Enemy {
-    const edge = Math.floor(Math.random() * 4);
-    let x: number, y: number;
-    
-    switch (edge) {
-      case 0: // top
-        x = Math.random() * canvasWidth;
-        y = -20;
-        break;
-      case 1: // right
-        x = canvasWidth + 20;
-        y = Math.random() * canvasHeight;
-        break;
-      case 2: // bottom
-        x = Math.random() * canvasWidth;
-        y = canvasHeight + 20;
-        break;
-      case 3: // left
-        x = -20;
-        y = Math.random() * canvasHeight;
-        break;
-      default:
-        x = 0;
-        y = 0;
-    }
+    // Always spawn from right side
+    const x = canvasWidth + 20;
+    const y = Math.random() * canvasHeight;
     
     return {
       x,
@@ -112,10 +110,53 @@ export class EnemyDomain implements DomainInterface<Enemy> {
   }
 
   destroyEnemy(enemy: Enemy): void {
+    this.currentWaveEnemiesAlive = Math.max(0, this.currentWaveEnemiesAlive - 1);
+    
     this.events.push({
       type: 'ENEMY_DESTROYED',
       data: { enemy },
       timestamp: Date.now()
     });
+    
+    // Check if wave is complete (all enemies spawned and all defeated)
+    if (this.currentWaveEnemiesAlive === 0 && this.currentWaveEnemiesSpawned >= this.config.waveSize) {
+      this.waveReadyToStart = true;
+      this.events.push({
+        type: 'WAVE_COMPLETED',
+        data: { waveSize: this.currentWaveEnemiesSpawned },
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  startNextWave(): void {
+    if (this.waveReadyToStart && this.currentWaveEnemiesAlive === 0) {
+      this.waveInProgress = true;
+      this.waveReadyToStart = false;
+      this.currentWaveEnemiesSpawned = 0;
+      this.lastSpawnTime = Date.now() - this.config.waveSpawnDelay; // Start immediately
+      
+      this.events.push({
+        type: 'WAVE_STARTED',
+        data: { waveSize: this.config.waveSize },
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  isWaveReadyToStart(): boolean {
+    return this.waveReadyToStart && this.currentWaveEnemiesAlive === 0;
+  }
+
+  isWaveInProgress(): boolean {
+    return this.waveInProgress;
+  }
+
+  getCurrentWaveStatus(): { enemiesSpawned: number; enemiesAlive: number; waveSize: number } {
+    return {
+      enemiesSpawned: this.currentWaveEnemiesSpawned,
+      enemiesAlive: this.currentWaveEnemiesAlive,
+      waveSize: this.config.waveSize
+    };
   }
 }

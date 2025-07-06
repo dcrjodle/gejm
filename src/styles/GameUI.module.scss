@@ -126,3 +126,99 @@ $text-shadow: 0 0 10px;
   border-radius: 2px;
   background: rgba(0, 255, 0, 0.1);
 }
+
+.waveInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+.waveText {
+  color: $secondary-neon;
+  text-shadow: $text-shadow $secondary-neon;
+  font-size: 12px;
+}
+
+.nextWaveButton {
+  background: transparent;
+  border: 1px solid $accent-neon;
+  color: $accent-neon;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: $text-shadow $accent-neon;
+  box-shadow: $text-shadow $accent-neon;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(0, 255, 0, 0.1);
+    box-shadow: 
+      $text-shadow $accent-neon,
+      inset 0 0 10px rgba(0, 255, 0, 0.3);
+  }
+  
+  &:active {
+    background: rgba(0, 255, 0, 0.2);
+    transform: translateY(1px);
+  }
+}
+
+.ammoBar {
+  position: relative;
+  width: 120px;
+  height: 12px;
+  border: 1px solid $primary-neon;
+  background: transparent;
+  box-shadow: $text-shadow $primary-neon;
+  overflow: hidden;
+}
+
+.ammoFill {
+  height: 100%;
+  background: linear-gradient(90deg, $primary-neon 0%, $accent-neon 100%);
+  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.5);
+  transition: width 0.3s ease;
+}
+
+.ammoText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  mix-blend-mode: difference;
+}
+
+.pauseOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgba(0, 0, 17, 0.9);
+  padding: 40px 60px;
+  border: 2px solid $primary-neon;
+  box-shadow: 
+    $text-shadow $primary-neon,
+    inset 0 0 20px rgba(0, 255, 255, 0.2);
+  pointer-events: auto;
+}
+
+.pauseText {
+  font-size: 48px;
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  font-weight: bold;
+  margin-bottom: 10px;
+  letter-spacing: 8px;
+}
+
+.pauseSubtext {
+  font-size: 16px;
+  color: $secondary-neon;
+  text-shadow: $text-shadow $secondary-neon;
+}

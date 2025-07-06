@@ -64,6 +64,8 @@ export class PlayerDomain implements DomainInterface<Player> {
     return {
       x: this.config.startingPosition.x,
       y: this.config.startingPosition.y,
+      vx: 0,
+      vy: 0,
       size: this.config.size,
       color: this.config.color,
       health: this.config.startingHealth,
@@ -71,7 +73,8 @@ export class PlayerDomain implements DomainInterface<Player> {
       level: this.config.startingLevel,
       experience: 0,
       experienceToNext: this.calculateExperienceToNext(this.config.startingLevel),
-      speed: this.config.startingSpeed
+      speed: this.config.startingSpeed,
+      resources: 0
     };
   }
 
@@ -99,6 +102,30 @@ export class PlayerDomain implements DomainInterface<Player> {
     });
 
     return { ...player, experience: newExperience };
+  }
+
+  collectResources(player: Player, resources: number): Player {
+    const newResources = player.resources + resources;
+    
+    this.events.push({
+      type: 'PLAYER_RESOURCES_GAINED',
+      data: { resources, newResources },
+      timestamp: Date.now()
+    });
+
+    return { ...player, resources: newResources };
+  }
+
+  spendResources(player: Player, amount: number): Player {
+    const newResources = Math.max(0, player.resources - amount);
+    
+    this.events.push({
+      type: 'PLAYER_RESOURCES_SPENT',
+      data: { amount, newResources },
+      timestamp: Date.now()
+    });
+
+    return { ...player, resources: newResources };
   }
 
   private calculateExperienceToNext(level: number): number {

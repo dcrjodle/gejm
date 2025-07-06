@@ -1,4 +1,4 @@
-import { Player, Enemy, Bullet, Particle, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { Player, Enemy, Bullet, Particle, Resource, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
 import { CanvasConfig } from '../../engine/types/config';
 
 export interface RenderableEntity {
@@ -39,7 +39,8 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     player: Player,
     enemies: Enemy[],
     bullets: Bullet[],
-    particles: Particle[]
+    particles: Particle[],
+    resources: Resource[] = []
   ): void {
     // Clear canvas
     ctx.fillStyle = this.config.backgroundColor;
@@ -63,6 +64,11 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     // Draw bullets
     bullets.forEach(bullet => {
       this.drawBullet(ctx, bullet);
+    });
+
+    // Draw resources
+    resources.forEach(resource => {
+      this.drawResource(ctx, resource);
     });
 
     // Draw player
@@ -127,6 +133,28 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
       bullet.size
     );
     ctx.shadowBlur = 0;
+  }
+
+  private drawResource(ctx: CanvasRenderingContext2D, resource: Resource): void {
+    // Glowing resource with pulsing effect
+    const pulseScale = 1 + Math.sin(Date.now() * 0.005) * 0.2;
+    const alpha = Math.max(0.3, resource.life / resource.maxLife);
+    
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = resource.color;
+    ctx.shadowColor = resource.color;
+    ctx.shadowBlur = 15 * pulseScale;
+    
+    const size = resource.size * pulseScale;
+    ctx.fillRect(
+      resource.x - size / 2,
+      resource.y - size / 2,
+      size,
+      size
+    );
+    
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
   }
 
   private drawPlayer(ctx: CanvasRenderingContext2D, player: Player): void {

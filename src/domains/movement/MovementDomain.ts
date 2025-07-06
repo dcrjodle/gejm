@@ -44,7 +44,7 @@ export class MovementDomain implements DomainInterface<Player> {
     let newY = player.y;
     let moved = false;
 
-    // Handle movement based on key bindings
+    // Direct movement based on key presses - no acceleration or friction
     if (keysPressed[this.config.keyBindings.up]) {
       newY -= player.speed;
       moved = true;
@@ -80,7 +80,9 @@ export class MovementDomain implements DomainInterface<Player> {
     return {
       ...player,
       x: newX,
-      y: newY
+      y: newY,
+      vx: 0, // Reset velocity since we're using direct movement
+      vy: 0
     };
   }
 

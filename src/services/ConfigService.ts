@@ -69,6 +69,8 @@ export class ConfigService {
       if (partial.enemies.color !== undefined) result.enemies.color = partial.enemies.color;
       if (partial.enemies.health !== undefined) result.enemies.health = partial.enemies.health;
       if (partial.enemies.experienceValue !== undefined) result.enemies.experienceValue = partial.enemies.experienceValue;
+      if (partial.enemies.waveSize !== undefined) result.enemies.waveSize = partial.enemies.waveSize;
+      if (partial.enemies.waveSpawnDelay !== undefined) result.enemies.waveSpawnDelay = partial.enemies.waveSpawnDelay;
     }
     if (partial.weapons) {
       result.weapons = { ...current.weapons };
@@ -77,6 +79,8 @@ export class ConfigService {
       if (partial.weapons.bulletSize !== undefined) result.weapons.bulletSize = partial.weapons.bulletSize;
       if (partial.weapons.bulletColor !== undefined) result.weapons.bulletColor = partial.weapons.bulletColor;
       if (partial.weapons.damage !== undefined) result.weapons.damage = partial.weapons.damage;
+      if (partial.weapons.maxAmmo !== undefined) result.weapons.maxAmmo = partial.weapons.maxAmmo;
+      if (partial.weapons.ammoRegenRate !== undefined) result.weapons.ammoRegenRate = partial.weapons.ammoRegenRate;
     }
     if (partial.movement) {
       result.movement = { ...current.movement };
@@ -89,6 +93,7 @@ export class ConfigService {
         if (partial.movement.keyBindings.left !== undefined) result.movement.keyBindings.left = partial.movement.keyBindings.left;
         if (partial.movement.keyBindings.right !== undefined) result.movement.keyBindings.right = partial.movement.keyBindings.right;
         if (partial.movement.keyBindings.shoot !== undefined) result.movement.keyBindings.shoot = partial.movement.keyBindings.shoot;
+        if (partial.movement.keyBindings.pause !== undefined) result.movement.keyBindings.pause = partial.movement.keyBindings.pause;
       }
     }
     if (partial.canvas) {

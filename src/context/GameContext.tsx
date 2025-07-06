@@ -4,6 +4,8 @@ import { GameState, GameAction, Player } from '../types/game';
 const initialPlayer: Player = {
   x: 600,
   y: 400,
+  vx: 0,
+  vy: 0,
   size: 8,
   color: '#00ffff',
   health: 3,
@@ -11,7 +13,8 @@ const initialPlayer: Player = {
   level: 1,
   experience: 0,
   experienceToNext: 10,
-  speed: 4
+  speed: 4,
+  resources: 0
 };
 
 const initialState: GameState = {
@@ -19,6 +22,7 @@ const initialState: GameState = {
   enemies: [],
   bullets: [],
   particles: [],
+  resources: [],
   gameRunning: true,
   gameOver: false,
   levelUp: false,
@@ -48,6 +52,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     
     case 'UPDATE_PARTICLES':
       return { ...state, particles: action.payload };
+    
+    case 'ADD_RESOURCE':
+      return { ...state, resources: [...state.resources, action.payload] };
+    
+    case 'UPDATE_RESOURCES':
+      return { ...state, resources: action.payload };
     
     case 'SET_GAME_RUNNING':
       return { ...state, gameRunning: action.payload };
