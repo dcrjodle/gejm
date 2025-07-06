@@ -21,7 +21,7 @@ const initialPlayer: Player = {
 };
 
 const initialBase = {
-  x: 600,
+  x: 100,
   y: 400,
   size: 40,
   color: '#ffffff',

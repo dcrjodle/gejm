@@ -103,6 +103,22 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
         setTimeout(() => dispatch({ type: 'SET_LEVEL_UP', payload: false }), 2000);
       }
 
+      // Check for health restoration events
+      const healthRestoredEvent = events.find(e => e.type === 'PLAYER_HEALTH_RESTORED');
+      if (healthRestoredEvent) {
+        // Force immediate player state update
+        dispatch({ type: 'UPDATE_PLAYER', payload: newGameState.player });
+        lastPlayerHealthRef.current = newGameState.player.health;
+      }
+
+      // Check for wave start events to ensure UI updates
+      const waveStartEvent = events.find(e => e.type === 'WAVE_STARTED' || e.type === 'WAVE_STARTED_WITH_HEALTH_RESET');
+      if (waveStartEvent) {
+        // Force player state update when wave starts (in case health was restored)
+        dispatch({ type: 'UPDATE_PLAYER', payload: newGameState.player });
+        lastPlayerHealthRef.current = newGameState.player.health;
+      }
+
       // Check for pause events and force re-render
       const pauseEvent = events.find(e => e.type === 'GAME_PAUSED' || e.type === 'GAME_RESUMED');
       if (pauseEvent) {

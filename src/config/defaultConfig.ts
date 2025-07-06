@@ -3,21 +3,21 @@ import { GameConfig } from "../engine/types/config";
 export const defaultGameConfig: GameConfig = {
   player: {
     startingHealth: 3,
-    startingSpeed: 4,
+    startingSpeed: 2.5, // Reduced from 4 for better control
     startingLevel: 1,
     startingPosition: { x: 800, y: 600 }, // Will be updated at runtime
     size: 8,
     color: "#00ffff",
     experiencePerLevel: 10,
     healthPerLevel: 1,
-    speedPerLevel: 0.2,
+    speedPerLevel: 0.15, // Reduced from 0.2 to match slower base speed
   },
   enemies: {
     spawnRate: 2000, // milliseconds
     maxConcurrent: 5,
-    baseSpeed: 1,
-    speedVariation: 1.5,
-    size: 6,
+    baseSpeed: 0.1, // Reduced from 1 for better balance
+    speedVariation: 0, // Reduced from 1.5 to keep speeds more consistent
+    size: 10, // Increased from 6 for better hitbox collision
     color: "#ff0066",
     health: 1,
     experienceValue: 1,
@@ -93,7 +93,7 @@ export const defaultGameConfig: GameConfig = {
     maxHealth: 100,
     repairRate: 2, // 2 health per second
     repairDelay: 5000, // 5 seconds after last damage
-    position: { x: 600, y: 400 }, // Will be updated at runtime to center
+    position: { x: 100, y: 400 }, // Leftmost corner with some padding
     size: 40,
     color: "#ffffff",
   },

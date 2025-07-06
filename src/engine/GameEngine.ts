@@ -45,8 +45,8 @@ export class GameEngine {
     const player = this.playerDomain.createPlayer();
     const base = this.baseDomain.createBase();
     
-    // Center the base based on canvas size
-    base.x = this.config.canvas.width / 2;
+    // Position base in leftmost corner with some padding
+    base.x = this.config.base.position.x;
     base.y = this.config.canvas.height / 2;
     
     this.gameState = {
@@ -338,7 +338,18 @@ export class GameEngine {
   }
 
   startNextWave(): void {
+    // Restore player health to full for the new wave
+    this.gameState.player = this.playerDomain.restoreHealth(this.gameState.player);
+    
+    // Start the next wave
     this.enemyDomain.startNextWave();
+    
+    // Add a wave start event to ensure UI updates
+    this.events.push({
+      type: 'WAVE_STARTED_WITH_HEALTH_RESET',
+      data: { playerHealth: this.gameState.player.health, playerMaxHealth: this.gameState.player.maxHealth },
+      timestamp: Date.now()
+    });
   }
 
   isWaveReadyToStart(): boolean {

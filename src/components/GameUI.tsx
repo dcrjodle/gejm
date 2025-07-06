@@ -1,22 +1,21 @@
-import React from 'react';
-import { useGameContext } from '../context/GameContext';
-import styles from '../styles/GameUI.module.scss';
+import React from "react";
+import { useGameContext } from "../context/GameContext";
+import styles from "../styles/GameUI.module.scss";
 
 interface GameUIProps {
   configService?: any;
   gameEngine?: any;
 }
 
-const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
+const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
   const { state } = useGameContext();
-  
+
   const handleNextWave = () => {
     if (gameEngine && gameEngine.isWaveReadyToStart()) {
       gameEngine.startNextWave();
     }
   };
-  
-  const waveStatus = gameEngine?.getCurrentWaveStatus() || { enemiesSpawned: 0, enemiesAlive: 0, waveSize: 0 };
+
   const isWaveReady = gameEngine?.isWaveReadyToStart() || false;
   const currentAmmo = gameEngine?.getCurrentAmmo() || 0;
   const maxAmmo = gameEngine?.getMaxAmmo() || 0;
@@ -26,31 +25,34 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
     <div className={styles.gameUI}>
       <div className={styles.statsPanel}>
         <div className={styles.stat}>
-          <span className={styles.label}>Level</span>
+          <span className={styles.icon}>⭐</span>
           <span className={styles.value}>{state.player.level}</span>
         </div>
-        
+
         <div className={styles.stat}>
-          <span className={styles.label}>Health</span>
+          <span className={styles.icon}>❤️</span>
           <div className={styles.healthBar}>
             {Array.from({ length: state.player.maxHealth }, (_, i) => (
               <div
                 key={i}
                 className={`${styles.healthPoint} ${
-                  i < state.player.health ? styles.active : ''
+                  i < state.player.health ? styles.active : ""
                 }`}
               />
             ))}
           </div>
         </div>
-        
+
         <div className={styles.stat}>
-          <span className={styles.label}>XP</span>
+          <span className={styles.icon}>✨</span>
           <div className={styles.xpBar}>
-            <div 
+            <div
               className={styles.xpFill}
-              style={{ 
-                width: `${(state.player.experience / state.player.experienceToNext) * 100}%` 
+              style={{
+                width: `${
+                  (state.player.experience / state.player.experienceToNext) *
+                  100
+                }%`,
               }}
             />
             <span className={styles.xpText}>
@@ -60,27 +62,33 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Energy Crystals</span>
-          <span className={styles.value}>{state.player.energyCrystals || 0}/999</span>
+          <span className={styles.icon}>💎</span>
+          <span className={styles.value}>
+            {state.player.energyCrystals || 0}/999
+          </span>
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Quantum Cores</span>
-          <span className={styles.value}>{state.player.quantumCores || 0}/99</span>
+          <span className={styles.icon}>🔮</span>
+          <span className={styles.value}>
+            {state.player.quantumCores || 0}/99
+          </span>
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Essence Fragments</span>
-          <span className={styles.value}>{state.player.essenceFragments || 0}/9</span>
+          <span className={styles.icon}>💫</span>
+          <span className={styles.value}>
+            {state.player.essenceFragments || 0}/9
+          </span>
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Ammo</span>
+          <span className={styles.icon}>🔫</span>
           <div className={styles.ammoBar}>
-            <div 
+            <div
               className={styles.ammoFill}
-              style={{ 
-                width: `${(currentAmmo / maxAmmo) * 100}%` 
+              style={{
+                width: `${(currentAmmo / maxAmmo) * 100}%`,
               }}
             />
             <span className={styles.ammoText}>
@@ -90,27 +98,27 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Base Health</span>
+          <span className={styles.icon}>🏠</span>
           <div className={styles.healthBar}>
-            {baseState && Array.from({ length: Math.ceil(baseState.maxHealth / 10) }, (_, i) => (
-              <div
-                key={i}
-                className={`${styles.healthPoint} ${
-                  (i + 1) * 10 <= baseState.health ? styles.active : ''
-                }`}
-              />
-            ))}
+            {baseState &&
+              Array.from(
+                { length: Math.ceil(baseState.maxHealth / 10) },
+                (_, i) => (
+                  <div
+                    key={i}
+                    className={`${styles.healthPoint} ${
+                      (i + 1) * 10 <= baseState.health ? styles.active : ""
+                    }`}
+                  />
+                )
+              )}
           </div>
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Wave</span>
           <div className={styles.waveInfo}>
-            <span className={styles.waveText}>
-              {waveStatus.enemiesAlive}/{waveStatus.waveSize} enemies
-            </span>
             {isWaveReady && (
-              <button 
+              <button
                 className={styles.nextWaveButton}
                 onClick={handleNextWave}
               >

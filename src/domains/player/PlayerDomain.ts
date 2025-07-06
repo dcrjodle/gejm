@@ -11,7 +11,7 @@ export class PlayerDomain implements DomainInterface<Player> {
     this.resourceConfig = resourceConfig;
   }
 
-  update(entities: Player[], deltaTime: number, gameState: any): DomainUpdate<Player> {
+  update(entities: Player[], _deltaTime: number, _gameState: any): DomainUpdate<Player> {
     if (entities.length === 0) {
       return { entities: [] };
     }
@@ -95,6 +95,18 @@ export class PlayerDomain implements DomainInterface<Player> {
     }
 
     return { ...player, health: newHealth };
+  }
+
+  restoreHealth(player: Player): Player {
+    if (player.health < player.maxHealth) {
+      this.events.push({
+        type: 'PLAYER_HEALTH_RESTORED',
+        data: { oldHealth: player.health, newHealth: player.maxHealth },
+        timestamp: Date.now()
+      });
+    }
+
+    return { ...player, health: player.maxHealth };
   }
 
   gainExperience(player: Player, experience: number): Player {
