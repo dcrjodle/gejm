@@ -20,6 +20,7 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
   const isWaveReady = gameEngine?.isWaveReadyToStart() || false;
   const currentAmmo = gameEngine?.getCurrentAmmo() || 0;
   const maxAmmo = gameEngine?.getMaxAmmo() || 0;
+  const baseState = gameEngine?.getGameState().base || null;
 
   return (
     <div className={styles.gameUI}>
@@ -59,8 +60,18 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
         </div>
 
         <div className={styles.stat}>
-          <span className={styles.label}>Resources</span>
-          <span className={styles.value}>{state.player.resources || 0}</span>
+          <span className={styles.label}>Energy Crystals</span>
+          <span className={styles.value}>{state.player.energyCrystals || 0}/999</span>
+        </div>
+
+        <div className={styles.stat}>
+          <span className={styles.label}>Quantum Cores</span>
+          <span className={styles.value}>{state.player.quantumCores || 0}/99</span>
+        </div>
+
+        <div className={styles.stat}>
+          <span className={styles.label}>Essence Fragments</span>
+          <span className={styles.value}>{state.player.essenceFragments || 0}/9</span>
         </div>
 
         <div className={styles.stat}>
@@ -75,6 +86,20 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
             <span className={styles.ammoText}>
               {currentAmmo}/{maxAmmo}
             </span>
+          </div>
+        </div>
+
+        <div className={styles.stat}>
+          <span className={styles.label}>Base Health</span>
+          <div className={styles.healthBar}>
+            {baseState && Array.from({ length: Math.ceil(baseState.maxHealth / 10) }, (_, i) => (
+              <div
+                key={i}
+                className={`${styles.healthPoint} ${
+                  (i + 1) * 10 <= baseState.health ? styles.active : ''
+                }`}
+              />
+            ))}
           </div>
         </div>
 

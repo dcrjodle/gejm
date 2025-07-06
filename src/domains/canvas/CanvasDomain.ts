@@ -1,4 +1,4 @@
-import { Player, Enemy, Bullet, Particle, Resource, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { Player, Enemy, Bullet, Particle, Resource, Base, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
 import { CanvasConfig } from '../../engine/types/config';
 
 export interface RenderableEntity {
@@ -40,7 +40,8 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     enemies: Enemy[],
     bullets: Bullet[],
     particles: Particle[],
-    resources: Resource[] = []
+    resources: Resource[] = [],
+    base?: Base
   ): void {
     // Clear canvas
     ctx.fillStyle = this.config.backgroundColor;
@@ -51,7 +52,12 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
       this.drawGrid(ctx);
     }
 
-    // Draw particles first (behind everything)
+    // Draw base first (so other entities render on top)
+    if (base) {
+      this.drawBase(ctx, base);
+    }
+
+    // Draw particles
     particles.forEach(particle => {
       this.drawParticle(ctx, particle);
     });
@@ -182,6 +188,38 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
       player.size,
       player.size
     );
+    ctx.shadowBlur = 0;
+  }
+
+  private drawBase(ctx: CanvasRenderingContext2D, base: Base): void {
+    // Draw base with pulsing effect based on health
+    const healthPercentage = base.health / base.maxHealth;
+    const pulseScale = 1 + Math.sin(Date.now() * 0.003) * 0.1;
+    
+    // Main base structure
+    ctx.fillStyle = base.color;
+    ctx.shadowColor = base.color;
+    ctx.shadowBlur = 20 * healthPercentage; // Dimmer glow when damaged
+    
+    const size = base.size * pulseScale;
+    ctx.fillRect(
+      base.x - size / 2,
+      base.y - size / 2,
+      size,
+      size
+    );
+    
+    // Health indicator ring
+    if (healthPercentage < 1) {
+      const ringRadius = base.size * 0.7;
+      ctx.beginPath();
+      ctx.arc(base.x, base.y, ringRadius, 0, 2 * Math.PI * healthPercentage);
+      ctx.strokeStyle = healthPercentage > 0.5 ? '#00ff00' : 
+                       healthPercentage > 0.2 ? '#ffff00' : '#ff0000';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    
     ctx.shadowBlur = 0;
   }
 

@@ -14,7 +14,21 @@ const initialPlayer: Player = {
   experience: 0,
   experienceToNext: 10,
   speed: 4,
-  resources: 0
+  resources: 0,
+  energyCrystals: 0,
+  quantumCores: 0,
+  essenceFragments: 0
+};
+
+const initialBase = {
+  x: 600,
+  y: 400,
+  size: 40,
+  color: '#ffffff',
+  health: 100,
+  maxHealth: 100,
+  repairRate: 2,
+  lastDamageTime: 0
 };
 
 const initialState: GameState = {
@@ -23,6 +37,7 @@ const initialState: GameState = {
   bullets: [],
   particles: [],
   resources: [],
+  base: initialBase,
   gameRunning: true,
   gameOver: false,
   levelUp: false,

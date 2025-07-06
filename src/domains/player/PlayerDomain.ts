@@ -1,12 +1,14 @@
-import { Player, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
-import { PlayerConfig } from '../../engine/types/config';
+import { Player, ResourceType, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { PlayerConfig, ResourceConfig } from '../../engine/types/config';
 
 export class PlayerDomain implements DomainInterface<Player> {
   private config: PlayerConfig;
+  private resourceConfig?: ResourceConfig;
   private events: GameEvent[] = [];
 
-  constructor(config: PlayerConfig) {
+  constructor(config: PlayerConfig, resourceConfig?: ResourceConfig) {
     this.config = config;
+    this.resourceConfig = resourceConfig;
   }
 
   update(entities: Player[], deltaTime: number, gameState: any): DomainUpdate<Player> {
@@ -74,7 +76,10 @@ export class PlayerDomain implements DomainInterface<Player> {
       experience: 0,
       experienceToNext: this.calculateExperienceToNext(this.config.startingLevel),
       speed: this.config.startingSpeed,
-      resources: 0
+      resources: 0, // Keep for backward compatibility
+      energyCrystals: 0,
+      quantumCores: 0,
+      essenceFragments: 0
     };
   }
 
@@ -114,6 +119,115 @@ export class PlayerDomain implements DomainInterface<Player> {
     });
 
     return { ...player, resources: newResources };
+  }
+
+  collectResourcesByType(player: Player, type: ResourceType, amount: number): Player {
+    const maxCapacity = this.getResourceCapacity(type);
+    
+    switch (type) {
+      case ResourceType.ENERGY_CRYSTAL:
+        const newEnergyCrystals = Math.min(maxCapacity, player.energyCrystals + amount);
+        const actualEnergyGained = newEnergyCrystals - player.energyCrystals;
+        
+        if (actualEnergyGained > 0) {
+          this.events.push({
+            type: 'PLAYER_ENERGY_CRYSTALS_GAINED',
+            data: { amount: actualEnergyGained, newTotal: newEnergyCrystals, maxCapacity },
+            timestamp: Date.now()
+          });
+        }
+        
+        return { ...player, energyCrystals: newEnergyCrystals };
+        
+      case ResourceType.QUANTUM_CORE:
+        const newQuantumCores = Math.min(maxCapacity, player.quantumCores + amount);
+        const actualQuantumGained = newQuantumCores - player.quantumCores;
+        
+        if (actualQuantumGained > 0) {
+          this.events.push({
+            type: 'PLAYER_QUANTUM_CORES_GAINED',
+            data: { amount: actualQuantumGained, newTotal: newQuantumCores, maxCapacity },
+            timestamp: Date.now()
+          });
+        }
+        
+        return { ...player, quantumCores: newQuantumCores };
+        
+      case ResourceType.ESSENCE_FRAGMENT:
+        const newEssenceFragments = Math.min(maxCapacity, player.essenceFragments + amount);
+        const actualEssenceGained = newEssenceFragments - player.essenceFragments;
+        
+        if (actualEssenceGained > 0) {
+          this.events.push({
+            type: 'PLAYER_ESSENCE_FRAGMENTS_GAINED',
+            data: { amount: actualEssenceGained, newTotal: newEssenceFragments, maxCapacity },
+            timestamp: Date.now()
+          });
+        }
+        
+        return { ...player, essenceFragments: newEssenceFragments };
+        
+      default:
+        return player;
+    }
+  }
+
+  spendResourcesByType(player: Player, type: ResourceType, amount: number): Player | null {
+    switch (type) {
+      case ResourceType.ENERGY_CRYSTAL:
+        if (player.energyCrystals < amount) return null;
+        const newEnergyCrystals = player.energyCrystals - amount;
+        
+        this.events.push({
+          type: 'PLAYER_ENERGY_CRYSTALS_SPENT',
+          data: { amount, newTotal: newEnergyCrystals },
+          timestamp: Date.now()
+        });
+        
+        return { ...player, energyCrystals: newEnergyCrystals };
+        
+      case ResourceType.QUANTUM_CORE:
+        if (player.quantumCores < amount) return null;
+        const newQuantumCores = player.quantumCores - amount;
+        
+        this.events.push({
+          type: 'PLAYER_QUANTUM_CORES_SPENT',
+          data: { amount, newTotal: newQuantumCores },
+          timestamp: Date.now()
+        });
+        
+        return { ...player, quantumCores: newQuantumCores };
+        
+      case ResourceType.ESSENCE_FRAGMENT:
+        if (player.essenceFragments < amount) return null;
+        const newEssenceFragments = player.essenceFragments - amount;
+        
+        this.events.push({
+          type: 'PLAYER_ESSENCE_FRAGMENTS_SPENT',
+          data: { amount, newTotal: newEssenceFragments },
+          timestamp: Date.now()
+        });
+        
+        return { ...player, essenceFragments: newEssenceFragments };
+        
+      default:
+        return null;
+    }
+  }
+
+  private getResourceCapacity(type: ResourceType): number {
+    if (!this.resourceConfig) return 999; // Fallback
+    
+    switch (type) {
+      case ResourceType.ENERGY_CRYSTAL:
+        return this.resourceConfig.energyCrystal.maxCapacity;
+      case ResourceType.QUANTUM_CORE:
+        return this.resourceConfig.quantumCore.maxCapacity;
+      case ResourceType.ESSENCE_FRAGMENT:
+        return this.resourceConfig.essenceFragment.maxCapacity;
+      default:
+        return 999;
+    }
   }
 
   spendResources(player: Player, amount: number): Player {

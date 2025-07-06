@@ -20,7 +20,10 @@ export interface Player extends GameObject, Velocity {
   experience: number;
   experienceToNext: number;
   speed: number;
-  resources: number;
+  resources: number; // Keep for backward compatibility
+  energyCrystals: number;
+  quantumCores: number;
+  essenceFragments: number;
 }
 
 export interface Enemy extends GameObject, Velocity {
@@ -38,12 +41,26 @@ export interface Particle extends GameObject, Velocity {
   maxLife: number;
 }
 
+export enum ResourceType {
+  ENERGY_CRYSTAL = 'energy_crystal',
+  QUANTUM_CORE = 'quantum_core',
+  ESSENCE_FRAGMENT = 'essence_fragment'
+}
+
 export interface Resource extends GameObject {
+  type: ResourceType;
   value: number;
   life: number;
   maxLife: number;
   isBeingPickedUp: boolean;
   pickupStartTime?: number;
+}
+
+export interface Base extends GameObject {
+  health: number;
+  maxHealth: number;
+  repairRate: number;
+  lastDamageTime: number;
 }
 
 export interface GameState {
@@ -52,6 +69,7 @@ export interface GameState {
   bullets: Bullet[];
   particles: Particle[];
   resources: Resource[];
+  base: Base;
   gameRunning: boolean;
   gameOver: boolean;
   levelUp: boolean;

@@ -61,4 +61,40 @@ export const defaultGameConfig: GameConfig = {
     friction: 0.98,
     lifeDecay: 0.02,
   },
+  resources: {
+    energyCrystal: {
+      dropRate: 0.8, // 80% chance per basic enemy kill
+      minValue: 1,
+      maxValue: 3,
+      maxCapacity: 999,
+      color: "#00ffff",
+      size: 6,
+    },
+    quantumCore: {
+      dropRate: 0.3, // 30% chance per elite enemy kill
+      value: 1,
+      maxCapacity: 99,
+      color: "#ff00ff",
+      size: 8,
+    },
+    essenceFragment: {
+      dropRate: 1.0, // 100% chance per boss enemy kill
+      minValue: 1,
+      maxValue: 2,
+      maxCapacity: 9,
+      color: "#ffff00",
+      size: 10,
+    },
+    pickupDistance: 40,
+    pickupDuration: 300,
+  },
+  base: {
+    startingHealth: 100,
+    maxHealth: 100,
+    repairRate: 2, // 2 health per second
+    repairDelay: 5000, // 5 seconds after last damage
+    position: { x: 600, y: 400 }, // Will be updated at runtime to center
+    size: 40,
+    color: "#ffffff",
+  },
 };

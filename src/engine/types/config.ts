@@ -64,6 +64,44 @@ export interface ParticleConfig {
   lifeDecay: number;
 }
 
+export interface ResourceConfig {
+  energyCrystal: {
+    dropRate: number; // 0-1 probability per basic enemy kill
+    minValue: number;
+    maxValue: number;
+    maxCapacity: number;
+    color: string;
+    size: number;
+  };
+  quantumCore: {
+    dropRate: number; // 0-1 probability per elite enemy kill
+    value: number;
+    maxCapacity: number;
+    color: string;
+    size: number;
+  };
+  essenceFragment: {
+    dropRate: number; // 0-1 probability per boss enemy kill
+    minValue: number;
+    maxValue: number;
+    maxCapacity: number;
+    color: string;
+    size: number;
+  };
+  pickupDistance: number;
+  pickupDuration: number;
+}
+
+export interface BaseConfig {
+  startingHealth: number;
+  maxHealth: number;
+  repairRate: number; // health per second when not under attack
+  repairDelay: number; // milliseconds after last damage before repair starts
+  position: { x: number; y: number };
+  size: number;
+  color: string;
+}
+
 export interface GameConfig {
   player: PlayerConfig;
   enemies: EnemyConfig;
@@ -71,4 +109,6 @@ export interface GameConfig {
   movement: MovementConfig;
   canvas: CanvasConfig;
   particles: ParticleConfig;
+  resources: ResourceConfig;
+  base: BaseConfig;
 }

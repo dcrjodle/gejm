@@ -1,4 +1,4 @@
-import { Enemy, Player, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { Enemy, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
 import { EnemyConfig } from '../../engine/types/config';
 
 export class EnemyDomain implements DomainInterface<Enemy> {
@@ -15,10 +15,10 @@ export class EnemyDomain implements DomainInterface<Enemy> {
   }
 
   update(entities: Enemy[], deltaTime: number, gameState: any): DomainUpdate<Enemy> {
-    const { player, canvasWidth, canvasHeight } = gameState;
+    const { player, base, canvasWidth, canvasHeight } = gameState;
     
-    // Update existing enemies
-    const updatedEnemies = entities.map(enemy => this.updateEnemyMovement(enemy, player));
+    // Update existing enemies - now target base primarily
+    const updatedEnemies = entities.map(enemy => this.updateEnemyMovement(enemy, base, player));
     
     // Update wave tracking
     this.currentWaveEnemiesAlive = updatedEnemies.length;
@@ -88,9 +88,20 @@ export class EnemyDomain implements DomainInterface<Enemy> {
     };
   }
 
-  private updateEnemyMovement(enemy: Enemy, player: Player): Enemy {
-    const dx = player.x - enemy.x;
-    const dy = player.y - enemy.y;
+  private updateEnemyMovement(enemy: Enemy, base: any, player: any): Enemy {
+    // Primary target: Base
+    let targetX = base.x;
+    let targetY = base.y;
+    
+    // If player is very close (within 30 pixels), switch to attacking player
+    const playerDistance = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
+    if (playerDistance < 30) {
+      targetX = player.x;
+      targetY = player.y;
+    }
+    
+    const dx = targetX - enemy.x;
+    const dy = targetY - enemy.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
     if (distance > 0) {

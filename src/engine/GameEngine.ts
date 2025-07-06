@@ -7,6 +7,7 @@ import { MovementDomain } from '../domains/movement';
 import { CanvasDomain } from '../domains/canvas';
 import { ParticleDomain } from '../domains/particles';
 import { ResourceDomain } from '../domains/resources';
+import { BaseDomain } from '../domains/base';
 
 export class GameEngine {
   private config: GameConfig;
@@ -17,6 +18,7 @@ export class GameEngine {
   private canvasDomain!: CanvasDomain;
   private particleDomain!: ParticleDomain;
   private resourceDomain!: ResourceDomain;
+  private baseDomain!: BaseDomain;
   private gameState!: GameState;
   private events: GameEvent[] = [];
   private isPaused: boolean = false;
@@ -29,17 +31,23 @@ export class GameEngine {
   }
 
   private initializeDomains(): void {
-    this.playerDomain = new PlayerDomain(this.config.player);
+    this.playerDomain = new PlayerDomain(this.config.player, this.config.resources);
     this.enemyDomain = new EnemyDomain(this.config.enemies);
     this.weaponDomain = new WeaponDomain(this.config.weapons);
     this.movementDomain = new MovementDomain(this.config.movement);
     this.canvasDomain = new CanvasDomain(this.config.canvas);
     this.particleDomain = new ParticleDomain(this.config.particles);
-    this.resourceDomain = new ResourceDomain();
+    this.resourceDomain = new ResourceDomain(this.config.resources);
+    this.baseDomain = new BaseDomain(this.config.base);
   }
 
   private initializeGameState(): void {
     const player = this.playerDomain.createPlayer();
+    const base = this.baseDomain.createBase();
+    
+    // Center the base based on canvas size
+    base.x = this.config.canvas.width / 2;
+    base.y = this.config.canvas.height / 2;
     
     this.gameState = {
       player,
@@ -47,6 +55,7 @@ export class GameEngine {
       bullets: [],
       particles: [],
       resources: [],
+      base,
       gameRunning: true,
       gameOver: false,
       levelUp: false,
@@ -103,16 +112,28 @@ export class GameEngine {
     this.gameState.particles = particleUpdate.entities;
     this.collectEvents(particleUpdate.events);
 
+    // Update base
+    const baseUpdate = this.baseDomain.update([this.gameState.base], deltaTime, gameContext);
+    this.gameState.base = baseUpdate.entities[0];
+    this.collectEvents(baseUpdate.events);
+
     // Update resources (includes automatic pickup detection)
     const resourceUpdate = this.resourceDomain.update(this.gameState.resources, deltaTime, gameContext);
     this.gameState.resources = resourceUpdate.entities;
     this.collectEvents(resourceUpdate.events);
 
-    // Handle resource collection events
+    // Handle resource collection events - use new 3-tier system
     const collectionEvents = resourceUpdate.events?.filter(event => event.type === 'RESOURCE_COLLECTED') || [];
     collectionEvents.forEach(event => {
-      if (event.data?.value) {
-        this.gameState.player = this.playerDomain.collectResources(this.gameState.player, event.data.value);
+      if (event.data?.resource) {
+        const resource = event.data.resource;
+        this.gameState.player = this.playerDomain.collectResourcesByType(
+          this.gameState.player, 
+          resource.type, 
+          resource.value
+        );
+        // Also update legacy resources for backward compatibility
+        this.gameState.player = this.playerDomain.collectResources(this.gameState.player, resource.value);
       }
     });
 
@@ -125,7 +146,7 @@ export class GameEngine {
     this.collectEvents(playerUpdate.events);
 
     // Check game over conditions
-    if (this.gameState.player.health <= 0) {
+    if (this.gameState.player.health <= 0 || this.gameState.base.health <= 0) {
       this.gameState.gameOver = true;
       this.gameState.gameRunning = false;
     }
@@ -145,9 +166,9 @@ export class GameEngine {
           const explosionParticles = this.particleDomain.createExplosion(enemy.x, enemy.y, enemy.color);
           this.gameState.particles.push(...explosionParticles);
           
-          // Create resource drop
-          const resource = this.resourceDomain.createResource(enemy.x, enemy.y, 5);
-          this.gameState.resources.push(resource);
+          // Create resource drops using new 3-tier system
+          const resourceDrops = this.resourceDomain.createResourceDrop(enemy.x, enemy.y, 'basic');
+          this.gameState.resources.push(...resourceDrops);
           
           // Remove entities
           this.gameState.bullets.splice(i, 1);
@@ -164,7 +185,25 @@ export class GameEngine {
       }
     }
 
-    // Player-enemy collisions
+    // Enemy-base collisions (primary target)
+    for (let i = this.gameState.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.gameState.enemies[i];
+      if (this.checkCollision(this.gameState.base, enemy)) {
+        // Create explosion
+        const explosionParticles = this.particleDomain.createExplosion(enemy.x, enemy.y, enemy.color);
+        this.gameState.particles.push(...explosionParticles);
+        
+        // Damage base
+        this.gameState.base = this.baseDomain.damageBase(this.gameState.base, 10);
+        
+        // Remove enemy
+        this.gameState.enemies.splice(i, 1);
+        this.enemyDomain.destroyEnemy(enemy);
+        continue; // Skip player collision check since enemy hit base
+      }
+    }
+
+    // Player-enemy collisions (secondary - only if enemy didn't hit base)
     for (let i = this.gameState.enemies.length - 1; i >= 0; i--) {
       const enemy = this.gameState.enemies[i];
       if (this.checkCollision(this.gameState.player, enemy)) {
@@ -221,6 +260,7 @@ export class GameEngine {
     this.canvasDomain.clearEvents();
     this.particleDomain.clearEvents();
     this.resourceDomain.clearEvents();
+    this.baseDomain.clearEvents();
   }
 
   render(ctx: CanvasRenderingContext2D): void {
@@ -230,7 +270,8 @@ export class GameEngine {
       this.gameState.enemies,
       this.gameState.bullets,
       this.gameState.particles,
-      this.gameState.resources
+      this.gameState.resources,
+      this.gameState.base
     );
   }
 
@@ -256,6 +297,8 @@ export class GameEngine {
     if (newConfig.movement) this.movementDomain.configure(newConfig.movement);
     if (newConfig.canvas) this.canvasDomain.configure(newConfig.canvas);
     if (newConfig.particles) this.particleDomain.configure(newConfig.particles);
+    if (newConfig.resources) this.resourceDomain.configure(newConfig.resources);
+    if (newConfig.base) this.baseDomain.configure(newConfig.base);
 
     // Update canvas size if changed
     if (newConfig.canvas) {
@@ -271,6 +314,9 @@ export class GameEngine {
     }
     if (this.enemyDomain && typeof this.enemyDomain.reset === 'function') {
       this.enemyDomain.reset();
+    }
+    if (this.baseDomain && typeof this.baseDomain.reset === 'function') {
+      this.baseDomain.reset();
     }
     
     // Reset pause state
