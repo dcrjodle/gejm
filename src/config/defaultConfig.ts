@@ -3,7 +3,7 @@ import { GameConfig } from "../engine/types/config";
 export const defaultGameConfig: GameConfig = {
   player: {
     startingHealth: 3,
-    startingSpeed: 10,
+    startingSpeed: 4,
     startingLevel: 1,
     startingPosition: { x: 800, y: 600 }, // Will be updated at runtime
     size: 8,

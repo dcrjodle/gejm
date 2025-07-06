@@ -16,8 +16,8 @@ export class WeaponDomain implements DomainInterface<Bullet> {
   update(entities: Bullet[], deltaTime: number, gameState: any): DomainUpdate<Bullet> {
     const { canvasWidth, canvasHeight } = gameState;
     
-    // Handle ammo regeneration
-    this.handleAmmoRegeneration(deltaTime);
+    // Removed automatic ammo regeneration
+    // this.handleAmmoRegeneration(deltaTime);
     
     // Update existing bullets
     const updatedBullets = entities

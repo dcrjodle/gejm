@@ -55,7 +55,7 @@ export class GameEngine {
     };
   }
 
-  update(deltaTime: number, keysPressed: Record<string, boolean>, mouseX?: number, mouseY?: number): void {
+  update(deltaTime: number, keysPressed: Record<string, boolean>, mouseX?: number, mouseY?: number, mouseClicked?: boolean): void {
     if (!this.gameState.gameRunning) return;
 
     // Handle pause toggle
@@ -78,8 +78,8 @@ export class GameEngine {
     this.gameState.player = movementUpdate.entities[0];
     this.collectEvents(movementUpdate.events);
 
-    // Handle shooting
-    if (this.movementDomain.isShootKeyPressed(keysPressed)) {
+    // Handle shooting (space key or mouse click)
+    if (this.movementDomain.isShootKeyPressed(keysPressed) || mouseClicked) {
       const bullet = this.weaponDomain.shoot(this.gameState.player, mouseX, mouseY);
       if (bullet) {
         this.gameState.bullets.push(bullet);
@@ -101,10 +101,18 @@ export class GameEngine {
     this.gameState.particles = particleUpdate.entities;
     this.collectEvents(particleUpdate.events);
 
-    // Update resources
+    // Update resources (includes automatic pickup detection)
     const resourceUpdate = this.resourceDomain.update(this.gameState.resources, deltaTime, gameContext);
     this.gameState.resources = resourceUpdate.entities;
     this.collectEvents(resourceUpdate.events);
+
+    // Handle resource collection events
+    const collectionEvents = resourceUpdate.events?.filter(event => event.type === 'RESOURCE_COLLECTED') || [];
+    collectionEvents.forEach(event => {
+      if (event.data?.value) {
+        this.gameState.player = this.playerDomain.collectResources(this.gameState.player, event.data.value);
+      }
+    });
 
     // Handle collisions
     this.handleCollisions();
@@ -171,20 +179,7 @@ export class GameEngine {
       }
     }
 
-    // Player-resource collisions
-    for (let i = this.gameState.resources.length - 1; i >= 0; i--) {
-      const resource = this.gameState.resources[i];
-      if (this.checkCollision(this.gameState.player, resource)) {
-        // Collect resource
-        this.gameState.player = this.playerDomain.collectResources(this.gameState.player, resource.value);
-        
-        // Remove resource
-        this.gameState.resources.splice(i, 1);
-        
-        // Track event
-        this.resourceDomain.collectResource(resource);
-      }
-    }
+    // Player-resource collisions are now handled automatically in ResourceDomain
   }
 
   private checkCollision(obj1: any, obj2: any): boolean {
@@ -313,7 +308,8 @@ export class GameEngine {
     const now = Date.now();
     const pauseKey = this.config.movement.keyBindings.pause;
     
-    if (keysPressed[pauseKey] && now - this.lastPauseKeyTime > 300) { // 300ms debounce
+    // Check for either P key or ESCAPE key
+    if ((keysPressed[pauseKey] || keysPressed['Escape']) && now - this.lastPauseKeyTime > 300) { // 300ms debounce
       this.isPaused = !this.isPaused;
       this.lastPauseKeyTime = now;
       

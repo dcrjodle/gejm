@@ -1,0 +1,111 @@
+$primary-neon: #00ffff;
+$secondary-neon: #ff0066;
+$accent-neon: #00ff00;
+$warning-neon: #ffff00;
+$dark-bg: #000011;
+$text-shadow: 0 0 10px;
+
+.pauseOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 17, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.pauseMenu {
+  background: rgba(0, 0, 17, 0.95);
+  border: 2px solid $primary-neon;
+  box-shadow: 
+    $text-shadow $primary-neon,
+    inset 0 0 30px rgba(0, 255, 255, 0.1);
+  padding: 40px 60px;
+  text-align: center;
+  min-width: 300px;
+  border-radius: 10px;
+}
+
+.title {
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  font-size: 36px;
+  font-weight: bold;
+  margin: 0 0 40px 0;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.menuButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.menuButton {
+  background: transparent;
+  border: 2px solid $accent-neon;
+  color: $accent-neon;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: $text-shadow $accent-neon;
+  box-shadow: $text-shadow $accent-neon;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  
+  &:hover {
+    background: rgba(0, 255, 0, 0.1);
+    box-shadow: 
+      $text-shadow $accent-neon,
+      inset 0 0 20px rgba(0, 255, 0, 0.2);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    background: rgba(0, 255, 0, 0.2);
+    transform: scale(0.98);
+  }
+}
+
+.controls {
+  border-top: 1px solid rgba(0, 255, 255, 0.3);
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controlItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.key {
+  color: $warning-neon;
+  text-shadow: $text-shadow $warning-neon;
+  font-weight: bold;
+  padding: 4px 8px;
+  border: 1px solid $warning-neon;
+  border-radius: 3px;
+  background: rgba(255, 255, 0, 0.1);
+  min-width: 80px;
+  text-align: center;
+}
+
+.action {
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  font-weight: normal;
+}

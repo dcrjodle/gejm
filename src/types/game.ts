@@ -42,6 +42,8 @@ export interface Resource extends GameObject {
   value: number;
   life: number;
   maxLife: number;
+  isBeingPickedUp: boolean;
+  pickupStartTime?: number;
 }
 
 export interface GameState {

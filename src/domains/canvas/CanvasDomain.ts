@@ -136,14 +136,29 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
   }
 
   private drawResource(ctx: CanvasRenderingContext2D, resource: Resource): void {
-    // Glowing resource with pulsing effect
-    const pulseScale = 1 + Math.sin(Date.now() * 0.005) * 0.2;
-    const alpha = Math.max(0.3, resource.life / resource.maxLife);
+    // Enhanced visual effects for pickup animation
+    let pulseScale = 1 + Math.sin(Date.now() * 0.005) * 0.2;
+    let alpha = Math.max(0.3, resource.life / resource.maxLife);
+    let glowIntensity = 15;
+
+    // Special effects when being picked up
+    if (resource.isBeingPickedUp && resource.pickupStartTime) {
+      const pickupProgress = Math.min(1, (Date.now() - resource.pickupStartTime) / 300);
+      
+      // Increase glow as it gets picked up
+      glowIntensity = 15 + (pickupProgress * 25);
+      
+      // Increase alpha for bright pickup effect
+      alpha = Math.min(1, alpha + pickupProgress * 0.5);
+      
+      // Add extra pulse during pickup
+      pulseScale += pickupProgress * 0.3;
+    }
     
     ctx.globalAlpha = alpha;
     ctx.fillStyle = resource.color;
     ctx.shadowColor = resource.color;
-    ctx.shadowBlur = 15 * pulseScale;
+    ctx.shadowBlur = glowIntensity * pulseScale;
     
     const size = resource.size * pulseScale;
     ctx.fillRect(

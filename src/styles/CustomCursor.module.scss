@@ -1,65 +1,13 @@
 $primary-neon: #00ffff;
-$fire-orange: #ff6600;
-$fire-red: #ff0044;
-$fire-yellow: #ffaa00;
 
 .cursor {
   position: fixed;
-  width: 8px;
-  height: 8px;
-  background: radial-gradient(circle, $primary-neon 0%, rgba(0, 255, 255, 0.8) 40%, transparent 70%);
+  width: 4px;
+  height: 4px;
+  background: $primary-neon;
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
-  box-shadow: 
-    0 0 10px $primary-neon,
-    0 0 20px rgba(0, 255, 255, 0.5),
-    0 0 30px rgba(0, 255, 255, 0.3);
-  animation: pulse 1.5s ease-in-out infinite alternate;
-  will-change: transform; // GPU optimization
-}
-
-.trailDot {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, $fire-orange 0%, $fire-red 50%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  box-shadow: 
-    0 0 8px $fire-orange,
-    0 0 16px rgba(255, 102, 0, 0.4);
-  will-change: transform, opacity; // GPU optimization
-  // Removed animation for performance
-}
-
-@keyframes pulse {
-  from {
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow: 
-      0 0 10px $primary-neon,
-      0 0 20px rgba(0, 255, 255, 0.5),
-      0 0 30px rgba(0, 255, 255, 0.3);
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.2);
-    box-shadow: 
-      0 0 15px $primary-neon,
-      0 0 30px rgba(0, 255, 255, 0.7),
-      0 0 45px rgba(0, 255, 255, 0.5);
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 0.8;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3);
-  }
+  box-shadow: 0 0 6px $primary-neon;
 }

@@ -20,7 +20,6 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
   const isWaveReady = gameEngine?.isWaveReadyToStart() || false;
   const currentAmmo = gameEngine?.getCurrentAmmo() || 0;
   const maxAmmo = gameEngine?.getMaxAmmo() || 0;
-  const isPaused = gameEngine?.isPausedState() || false;
 
   return (
     <div className={styles.gameUI}>
@@ -97,13 +96,6 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
         </div>
       </div>
 
-      {isPaused && (
-        <div className={styles.pauseOverlay}>
-          <div className={styles.pauseText}>PAUSED</div>
-          <div className={styles.pauseSubtext}>Press P to resume</div>
-        </div>
-      )}
-
       <div className={styles.controls}>
         <div className={styles.controlGroup}>
           <span className={styles.controlLabel}>Move</span>
@@ -111,7 +103,7 @@ const GameUI: React.FC<GameUIProps> = ({ configService, gameEngine }) => {
         </div>
         <div className={styles.controlGroup}>
           <span className={styles.controlLabel}>Shoot</span>
-          <span className={styles.controlKeys}>SPACE</span>
+          <span className={styles.controlKeys}>SPACE / CLICK</span>
         </div>
       </div>
     </div>

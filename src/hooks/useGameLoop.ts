@@ -35,15 +35,31 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       });
     }
 
-    // Add mouse event listener
+    // Add mouse event listeners
     const handleMouseMove = (event: MouseEvent) => {
-      mouseRef.current = { x: event.clientX, y: event.clientY };
+      mouseRef.current = { ...mouseRef.current, x: event.clientX, y: event.clientY };
+    };
+
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 0) { // Left click only
+        mouseRef.current = { ...mouseRef.current, clicked: true };
+      }
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button === 0) { // Left click only
+        mouseRef.current = { ...mouseRef.current, clicked: false };
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
@@ -74,7 +90,7 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
       });
 
       // Update engine
-      engineRef.current.update(deltaTime, keysPressed, mouseRef.current.x, mouseRef.current.y);
+      engineRef.current.update(deltaTime, keysPressed, mouseRef.current.x, mouseRef.current.y, mouseRef.current.clicked);
       
       // Get updated game state from engine
       const newGameState = engineRef.current.getGameState();

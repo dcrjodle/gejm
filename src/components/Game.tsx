@@ -7,6 +7,7 @@ import GameUI from './GameUI';
 import GameOverlay from './GameOverlay';
 import CustomCursor from './CustomCursor';
 import DevControls from './DevControls';
+import PauseMenu from './PauseMenu';
 import styles from '../styles/Game.module.scss';
 
 const Game: React.FC = () => {
@@ -21,6 +22,21 @@ const Game: React.FC = () => {
     }
   }, [windowSize.width, windowSize.height, configService]);
 
+  const handleResumeGame = () => {
+    if (gameEngine) {
+      gameEngine.setPaused(false);
+    }
+  };
+
+  const handleRestartGame = () => {
+    if (gameEngine) {
+      gameEngine.resetGame();
+      gameEngine.setPaused(false);
+    }
+  };
+
+  const isPaused = gameEngine?.isPausedState() || false;
+
   return (
     <div className={styles.gameContainer}>
       <DevControls gameEngine={gameEngine} />
@@ -31,6 +47,11 @@ const Game: React.FC = () => {
         />
         <GameUI configService={configService} gameEngine={gameEngine} />
         <GameOverlay />
+        <PauseMenu 
+          isVisible={isPaused}
+          onResume={handleResumeGame}
+          onRestart={handleRestartGame}
+        />
         <CustomCursor />
       </div>
     </div>
