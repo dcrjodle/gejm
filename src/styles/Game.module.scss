@@ -1,0 +1,44 @@
+// Neon theme variables
+$primary-neon: #00ffff;
+$secondary-neon: #ff0066;
+$accent-neon: #00ff00;
+$warning-neon: #ffff00;
+$danger-neon: #ff0044;
+$dark-bg: #000011;
+$darker-bg: #000000;
+$grid-color: #001122;
+
+// Global body reset
+:global(body) {
+  margin: 0;
+  padding: 0;
+  background: $dark-bg;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+}
+
+.gameContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background: $dark-bg;
+  position: relative;
+}
+
+.gameWrapper {
+  position: relative;
+  border: 2px solid $primary-neon;
+  border-radius: 4px;
+  box-shadow: 
+    0 0 20px $primary-neon,
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  background: $darker-bg;
+  overflow: hidden;
+}
+
+.gameCanvas {
+  display: block;
+  background: $darker-bg;
+}

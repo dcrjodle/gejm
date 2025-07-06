@@ -1,0 +1,132 @@
+$primary-neon: #00ffff;
+$secondary-neon: #ff0066;
+$accent-neon: #00ff00;
+$warning-neon: #ffff00;
+$danger-neon: #ff0044;
+$dark-bg: #000011;
+$text-shadow: 0 0 10px;
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 17, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: $dark-bg;
+  border: 2px solid $danger-neon;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 
+    0 0 30px $danger-neon,
+    inset 0 0 20px rgba(255, 0, 68, 0.1);
+  min-width: 300px;
+}
+
+.title {
+  color: $danger-neon;
+  font-size: 32px;
+  margin: 0 0 30px 0;
+  text-shadow: $text-shadow $danger-neon;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.stats {
+  margin-bottom: 30px;
+}
+
+.finalStat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: $primary-neon;
+  font-size: 16px;
+  text-shadow: $text-shadow $primary-neon;
+}
+
+.statValue {
+  color: $accent-neon;
+  text-shadow: $text-shadow $accent-neon;
+  font-weight: bold;
+}
+
+.restartButton {
+  background: transparent;
+  border: 2px solid $accent-neon;
+  color: $accent-neon;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  text-shadow: $text-shadow $accent-neon;
+  box-shadow: $text-shadow $accent-neon;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: $accent-neon;
+    color: $dark-bg;
+    text-shadow: none;
+    box-shadow: 
+      0 0 20px $accent-neon,
+      inset 0 0 10px rgba(0, 255, 0, 0.3);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.levelUpOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+  pointer-events: none;
+}
+
+.levelUpText {
+  color: $accent-neon;
+  font-size: 48px;
+  font-weight: bold;
+  text-shadow: $text-shadow $accent-neon;
+  text-align: center;
+  animation: levelUpPulse 2s ease-out forwards;
+}
+
+.levelNumber {
+  font-size: 72px;
+  margin-top: 10px;
+  color: $warning-neon;
+  text-shadow: $text-shadow $warning-neon;
+}
+
+@keyframes levelUpPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}

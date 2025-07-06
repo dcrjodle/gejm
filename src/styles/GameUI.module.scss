@@ -1,0 +1,128 @@
+$primary-neon: #00ffff;
+$secondary-neon: #ff0066;
+$accent-neon: #00ff00;
+$warning-neon: #ffff00;
+$danger-neon: #ff0044;
+$dark-bg: #000011;
+$text-shadow: 0 0 10px;
+
+.gameUI {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.statsPanel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  pointer-events: auto;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: $primary-neon;
+  font-size: 14px;
+  text-shadow: $text-shadow $primary-neon;
+}
+
+.label {
+  min-width: 60px;
+  font-weight: bold;
+}
+
+.value {
+  color: $accent-neon;
+  text-shadow: $text-shadow $accent-neon;
+  font-weight: bold;
+}
+
+.healthBar {
+  display: flex;
+  gap: 3px;
+}
+
+.healthPoint {
+  width: 12px;
+  height: 12px;
+  border: 1px solid $danger-neon;
+  background: transparent;
+  box-shadow: $text-shadow $danger-neon;
+  
+  &.active {
+    background: $danger-neon;
+    box-shadow: 
+      $text-shadow $danger-neon,
+      inset 0 0 5px rgba(255, 0, 68, 0.5);
+  }
+}
+
+.xpBar {
+  position: relative;
+  width: 120px;
+  height: 12px;
+  border: 1px solid $warning-neon;
+  background: transparent;
+  box-shadow: $text-shadow $warning-neon;
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  background: linear-gradient(90deg, $warning-neon 0%, $accent-neon 100%);
+  box-shadow: inset 0 0 10px rgba(255, 255, 0, 0.5);
+  transition: width 0.3s ease;
+}
+
+.xpText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  mix-blend-mode: difference;
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.controlLabel {
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  min-width: 40px;
+}
+
+.controlKeys {
+  color: $accent-neon;
+  text-shadow: $text-shadow $accent-neon;
+  font-weight: bold;
+  padding: 2px 6px;
+  border: 1px solid $accent-neon;
+  border-radius: 2px;
+  background: rgba(0, 255, 0, 0.1);
+}
