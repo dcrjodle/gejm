@@ -7,8 +7,9 @@ const CustomCursor: React.FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (cursorRef.current) {
-        cursorRef.current.style.left = `${e.clientX}px`;
-        cursorRef.current.style.top = `${e.clientY}px`;
+        // Center the 4px dot at the mouse position (offset by 2px = half the width/height)
+        cursorRef.current.style.left = `${e.clientX - 2}px`;
+        cursorRef.current.style.top = `${e.clientY - 2}px`;
       }
     };
 

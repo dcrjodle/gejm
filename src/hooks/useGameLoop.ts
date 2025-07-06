@@ -37,7 +37,17 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
 
     // Add mouse event listeners
     const handleMouseMove = (event: MouseEvent) => {
-      mouseRef.current = { ...mouseRef.current, x: event.clientX, y: event.clientY };
+      // Get canvas element to calculate relative coordinates
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
+        mouseRef.current = { ...mouseRef.current, x: canvasX, y: canvasY };
+      } else {
+        // Fallback to viewport coordinates if canvas not found
+        mouseRef.current = { ...mouseRef.current, x: event.clientX, y: event.clientY };
+      }
     };
 
     const handleMouseDown = (event: MouseEvent) => {

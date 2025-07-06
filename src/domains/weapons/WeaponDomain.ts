@@ -61,10 +61,14 @@ export class WeaponDomain implements DomainInterface<Bullet> {
     let vx = 0;
     let vy = -this.config.bulletSpeed;
     
-    // If target coordinates are provided, calculate direction to target
+    // Calculate bullet spawn position (top of player)
+    const bulletStartX = player.x;
+    const bulletStartY = player.y - player.size;
+    
+    // If target coordinates are provided, calculate direction from bullet spawn position to target
     if (targetX !== undefined && targetY !== undefined) {
-      const dx = targetX - player.x;
-      const dy = targetY - player.y;
+      const dx = targetX - bulletStartX;
+      const dy = targetY - bulletStartY;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
       if (distance > 0) {
@@ -74,8 +78,8 @@ export class WeaponDomain implements DomainInterface<Bullet> {
     }
     
     return {
-      x: player.x,
-      y: player.y - player.size,
+      x: bulletStartX,
+      y: bulletStartY,
       vx,
       vy,
       size: this.config.bulletSize,
