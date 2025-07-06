@@ -8,6 +8,7 @@ import { CanvasDomain } from '../domains/canvas';
 import { ParticleDomain } from '../domains/particles';
 import { ResourceDomain } from '../domains/resources';
 import { BaseDomain } from '../domains/base';
+import { WaveDomain } from '../domains/wave';
 
 export class GameEngine {
   private config: GameConfig;
@@ -19,6 +20,7 @@ export class GameEngine {
   private particleDomain!: ParticleDomain;
   private resourceDomain!: ResourceDomain;
   private baseDomain!: BaseDomain;
+  private waveDomain!: WaveDomain;
   private gameState!: GameState;
   private events: GameEvent[] = [];
   private isPaused: boolean = false;
@@ -39,6 +41,7 @@ export class GameEngine {
     this.particleDomain = new ParticleDomain(this.config.particles);
     this.resourceDomain = new ResourceDomain(this.config.resources);
     this.baseDomain = new BaseDomain(this.config.base);
+    this.waveDomain = new WaveDomain(this.config.wave);
   }
 
   private initializeGameState(): void {
@@ -65,10 +68,21 @@ export class GameEngine {
   }
 
   update(deltaTime: number, keysPressed: Record<string, boolean>, mouseX?: number, mouseY?: number, mouseClicked?: boolean): void {
-    if (!this.gameState.gameRunning) return;
-
     // Always handle pause toggle, even when paused
     this.handlePauseInput(keysPressed);
+    
+    // Update wave system first - this should always run for timer
+    const waveUpdate = this.waveDomain.update([], deltaTime, this.gameState);
+    this.collectEvents(waveUpdate.events);
+    
+    // Handle wave combat start events
+    const waveCombatStartEvent = waveUpdate.events?.find(event => event.type === 'WAVE_COMBAT_STARTED');
+    if (waveCombatStartEvent) {
+      // Ensure enemies can spawn immediately when combat starts
+      this.enemyDomain.startNextWave();
+    }
+
+    if (!this.gameState.gameRunning) return;
     
     // Skip game logic update if paused, but still allow rendering
     if (this.isPaused) {
@@ -81,7 +95,9 @@ export class GameEngine {
       mouseX,
       mouseY,
       canvasWidth: this.config.canvas.width,
-      canvasHeight: this.config.canvas.height
+      canvasHeight: this.config.canvas.height,
+      currentWave: this.waveDomain.getCurrentWaveNumber(),
+      wavePhase: this.waveDomain.getPhase()
     };
 
     // Update movement first
@@ -101,6 +117,12 @@ export class GameEngine {
     const enemyUpdate = this.enemyDomain.update(this.gameState.enemies, deltaTime, gameContext);
     this.gameState.enemies = enemyUpdate.entities;
     this.collectEvents(enemyUpdate.events);
+    
+    // Notify WaveDomain of enemy spawns
+    const enemySpawnEvents = enemyUpdate.events?.filter(event => event.type === 'ENEMY_SPAWNED') || [];
+    enemySpawnEvents.forEach(() => {
+      this.waveDomain.onEnemySpawned();
+    });
 
     // Update bullets
     const bulletUpdate = this.weaponDomain.update(this.gameState.bullets, deltaTime, gameContext);
@@ -180,6 +202,7 @@ export class GameEngine {
           // Track events
           this.weaponDomain.destroyBullet(bullet);
           this.enemyDomain.destroyEnemy(enemy);
+          this.waveDomain.onEnemyDestroyed();
           break;
         }
       }
@@ -199,6 +222,7 @@ export class GameEngine {
         // Remove enemy
         this.gameState.enemies.splice(i, 1);
         this.enemyDomain.destroyEnemy(enemy);
+        this.waveDomain.onEnemyDestroyed();
         continue; // Skip player collision check since enemy hit base
       }
     }
@@ -217,6 +241,7 @@ export class GameEngine {
         
         // Track event
         this.enemyDomain.destroyEnemy(enemy);
+        this.waveDomain.onEnemyDestroyed();
       }
     }
 
@@ -261,6 +286,7 @@ export class GameEngine {
     this.particleDomain.clearEvents();
     this.resourceDomain.clearEvents();
     this.baseDomain.clearEvents();
+    this.waveDomain.clearEvents();
   }
 
   render(ctx: CanvasRenderingContext2D): void {
@@ -299,6 +325,7 @@ export class GameEngine {
     if (newConfig.particles) this.particleDomain.configure(newConfig.particles);
     if (newConfig.resources) this.resourceDomain.configure(newConfig.resources);
     if (newConfig.base) this.baseDomain.configure(newConfig.base);
+    if (newConfig.wave) this.waveDomain.configure(newConfig.wave);
 
     // Update canvas size if changed
     if (newConfig.canvas) {
@@ -317,6 +344,9 @@ export class GameEngine {
     }
     if (this.baseDomain && typeof this.baseDomain.reset === 'function') {
       this.baseDomain.reset();
+    }
+    if (this.waveDomain && typeof this.waveDomain.reset === 'function') {
+      this.waveDomain.reset();
     }
     
     // Reset pause state
@@ -338,11 +368,14 @@ export class GameEngine {
   }
 
   startNextWave(): void {
+    // Start the next wave in WaveDomain first (this will skip current phase)
+    this.waveDomain.startNextWave();
+    
+    // Reset enemy tracking for new wave
+    this.enemyDomain.startNextWave();
+    
     // Restore player health to full for the new wave
     this.gameState.player = this.playerDomain.restoreHealth(this.gameState.player);
-    
-    // Start the next wave
-    this.enemyDomain.startNextWave();
     
     // Add a wave start event to ensure UI updates
     this.events.push({
@@ -399,5 +432,17 @@ export class GameEngine {
 
   setPaused(paused: boolean): void {
     this.isPaused = paused;
+  }
+
+  getCurrentWave(): number {
+    return this.waveDomain.getCurrentWaveNumber();
+  }
+
+  getWavePhase(): string {
+    return this.waveDomain.getPhase();
+  }
+
+  getWaveTimeRemaining(): number {
+    return this.waveDomain.getPhaseTimeRemaining();
   }
 }

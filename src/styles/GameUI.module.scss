@@ -16,6 +16,60 @@ $text-shadow: 0 0 10px;
   z-index: 100;
 }
 
+.waveCounter {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+  background: rgba(0, 17, 17, 0.8);
+  padding: 10px 20px;
+  border: 2px solid $primary-neon;
+  border-radius: 8px;
+  box-shadow: 
+    $text-shadow $primary-neon,
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.waveNumber {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.waveText {
+  color: $primary-neon;
+  text-shadow: $text-shadow $primary-neon;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.wavePhase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.phaseText {
+  color: $warning-neon;
+  text-shadow: $text-shadow $warning-neon;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.timeRemaining {
+  color: $accent-neon;
+  text-shadow: $text-shadow $accent-neon;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .statsPanel {
   position: absolute;
   top: 20px;

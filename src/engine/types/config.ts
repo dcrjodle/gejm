@@ -21,6 +21,30 @@ export interface EnemyConfig {
   experienceValue: number;
   waveSize: number;
   waveSpawnDelay: number;
+  // Enemy type configurations
+  basic: {
+    size: number;
+    color: string;
+    health: number;
+    speed: number;
+    experienceValue: number;
+  };
+  elite: {
+    size: number;
+    color: string;
+    health: number;
+    speed: number;
+    experienceValue: number;
+    spawnChance: number; // 0-1 probability
+  };
+  boss: {
+    size: number;
+    color: string;
+    health: number;
+    speed: number;
+    experienceValue: number;
+    count: number; // Number of bosses per boss wave
+  };
 }
 
 export interface WeaponConfig {
@@ -102,6 +126,21 @@ export interface BaseConfig {
   color: string;
 }
 
+export interface WaveConfig {
+  preparationDuration: number; // 10 seconds
+  combatDuration: number; // 60-120 seconds  
+  intermissionDuration: number; // 30-60 seconds
+  difficultyScaling: {
+    healthMultiplier: number; // +15% per wave
+    speedMultiplier: number; // +5% per wave
+    spawnRateMultiplier: number; // +10% per wave
+  };
+  bossWaves: number[]; // [5, 10, 15, 20, ...]
+  eliteWaveStart: number; // Wave 3
+  baseEnemiesPerWave: number; // Starting number of enemies
+  enemiesPerWaveIncrease: number; // Additional enemies per wave
+}
+
 export interface GameConfig {
   player: PlayerConfig;
   enemies: EnemyConfig;
@@ -111,4 +150,5 @@ export interface GameConfig {
   particles: ParticleConfig;
   resources: ResourceConfig;
   base: BaseConfig;
+  wave: WaveConfig;
 }

@@ -10,19 +10,42 @@ interface GameUIProps {
 const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
   const { state } = useGameContext();
 
+  // Wave information
+  const currentWave = gameEngine?.getCurrentWave() || 1;
+  const wavePhase = gameEngine?.getWavePhase() || 'preparation';
+  const timeRemaining = gameEngine?.getWaveTimeRemaining() || 0;
+  
   const handleNextWave = () => {
-    if (gameEngine && gameEngine.isWaveReadyToStart()) {
+    if (gameEngine) {
       gameEngine.startNextWave();
     }
   };
 
-  const isWaveReady = gameEngine?.isWaveReadyToStart() || false;
+  // Allow skipping during preparation and upgrade intermission phases
+  const canSkipWave = wavePhase === 'preparation' || wavePhase === 'upgrade_intermission';
   const currentAmmo = gameEngine?.getCurrentAmmo() || 0;
   const maxAmmo = gameEngine?.getMaxAmmo() || 0;
   const baseState = gameEngine?.getGameState().base || null;
+  
+  const formatTime = (ms: number) => {
+    const seconds = Math.ceil(ms / 1000);
+    return `${seconds}s`;
+  };
 
   return (
     <div className={styles.gameUI}>
+      {/* Wave Counter at the top */}
+      <div className={styles.waveCounter}>
+        <div className={styles.waveNumber}>
+          <span className={styles.icon}>🌊</span>
+          <span className={styles.waveText}>Wave {currentWave}</span>
+        </div>
+        <div className={styles.wavePhase}>
+          <span className={styles.phaseText}>{wavePhase.replace('_', ' ')}</span>
+          <span className={styles.timeRemaining}>{formatTime(timeRemaining)}</span>
+        </div>
+      </div>
+      
       <div className={styles.statsPanel}>
         <div className={styles.stat}>
           <span className={styles.icon}>⭐</span>
@@ -117,12 +140,12 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
 
         <div className={styles.stat}>
           <div className={styles.waveInfo}>
-            {isWaveReady && (
+            {canSkipWave && (
               <button
                 className={styles.nextWaveButton}
                 onClick={handleNextWave}
               >
-                Next Wave
+                {wavePhase === 'preparation' ? 'Start Combat' : 'Next Wave'}
               </button>
             )}
           </div>

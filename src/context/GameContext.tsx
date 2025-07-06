@@ -83,6 +83,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'SET_LEVEL_UP':
       return { ...state, levelUp: action.payload };
     
+    case 'FORCE_UI_UPDATE':
+      return { ...state, lastUpdate: action.payload };
+    
     case 'RESET_GAME':
       return { ...initialState, gameRunning: true, gameOver: false, levelUp: false };
     

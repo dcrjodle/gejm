@@ -75,6 +75,7 @@ export interface GameState {
   levelUp: boolean;
   canvasWidth: number;
   canvasHeight: number;
+  lastUpdate?: number; // For forcing UI updates
 }
 
 export type GameAction = 
@@ -90,4 +91,5 @@ export type GameAction =
   | { type: 'SET_GAME_RUNNING'; payload: boolean }
   | { type: 'SET_GAME_OVER'; payload: boolean }
   | { type: 'SET_LEVEL_UP'; payload: boolean }
+  | { type: 'FORCE_UI_UPDATE'; payload: number }
   | { type: 'RESET_GAME' };

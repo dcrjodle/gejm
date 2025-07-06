@@ -13,10 +13,19 @@ export interface Player extends GameObject, Velocity {
   essenceFragments: number;
 }
 
+export enum EnemyType {
+  BASIC = 'basic',
+  ELITE = 'elite', 
+  BOSS = 'boss'
+}
+
 export interface Enemy extends GameObject, Velocity {
+  type: EnemyType;
   speed: number;
   health: number;
+  maxHealth: number;
   experienceValue: number;
+  waveNumber: number;
 }
 
 export interface Bullet extends GameObject, Velocity {

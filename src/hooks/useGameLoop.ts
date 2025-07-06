@@ -13,6 +13,7 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
   const lastTimeRef = useRef<number>(0);
   const lastPlayerHealthRef = useRef<number>(state.player.health);
   const mouseRef = useRef<{ x: number; y: number; clicked: boolean }>({ x: 0, y: 0, clicked: false });
+  const lastUIUpdateRef = useRef<number>(0);
   
   // Update state ref
   useEffect(() => {
@@ -88,19 +89,25 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
         lastPlayerHealthRef.current = currentState.player.health;
       }
 
-      if (!currentState.gameRunning || !engineRef.current) {
+      if (!engineRef.current) {
         animationRef.current = requestAnimationFrame(gameLoop);
         return;
       }
-
+      
+      // Always update engine (wave timer should continue even when game not running)
       // Convert keys to simple object for engine
       const keysPressed: Record<string, boolean> = {};
       Object.keys(keysRef.current).forEach(key => {
         keysPressed[key] = keysRef.current[key];
       });
 
-      // Update engine
+      // Update engine - wave system will continue ticking
       engineRef.current.update(deltaTime, keysPressed, mouseRef.current.x, mouseRef.current.y, mouseRef.current.clicked);
+      
+      if (!currentState.gameRunning) {
+        animationRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
       
       // Get updated game state from engine
       const newGameState = engineRef.current.getGameState();
@@ -164,6 +171,13 @@ export const useGameLoop = (keysRef: React.MutableRefObject<Record<string, boole
 
       if (newGameState.gameRunning !== currentState.gameRunning) {
         dispatch({ type: 'SET_GAME_RUNNING', payload: newGameState.gameRunning });
+      }
+
+      // Force UI update every 100ms to ensure wave timer updates continuously
+      const now = Date.now();
+      if (now - lastUIUpdateRef.current > 100) {
+        dispatch({ type: 'FORCE_UI_UPDATE', payload: now });
+        lastUIUpdateRef.current = now;
       }
 
       // Clear engine events

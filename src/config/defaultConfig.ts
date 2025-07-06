@@ -14,15 +14,39 @@ export const defaultGameConfig: GameConfig = {
   },
   enemies: {
     spawnRate: 2000, // milliseconds
-    maxConcurrent: 5,
+    maxConcurrent: 15, // Increased to allow more enemies per wave
     baseSpeed: 0.1, // Reduced from 1 for better balance
-    speedVariation: 0, // Reduced from 1.5 to keep speeds more consistent
+    speedVariation: 0.1, // Reduced from 1.5 to keep speeds more consistent
     size: 10, // Increased from 6 for better hitbox collision
     color: "#ff0066",
     health: 1,
     experienceValue: 1,
     waveSize: 5,
-    waveSpawnDelay: 500, // milliseconds between spawns in a wave
+    waveSpawnDelay: 800, // milliseconds between spawns in a wave
+    // Enemy type configurations
+    basic: {
+      size: 8,
+      color: "#ff0066", // Pink - basic enemy
+      health: 1,
+      speed: 0.8,
+      experienceValue: 1,
+    },
+    elite: {
+      size: 12,
+      color: "#ff8800", // Orange - elite enemy
+      health: 3,
+      speed: 1.2,
+      experienceValue: 3,
+      spawnChance: 0.25, // 25% chance to spawn elite instead of basic
+    },
+    boss: {
+      size: 20,
+      color: "#ff0000", // Red - boss enemy
+      health: 15,
+      speed: 0.6,
+      experienceValue: 10,
+      count: 1, // 1 boss per boss wave
+    },
   },
   weapons: {
     shootCooldown: 300, // milliseconds
@@ -96,5 +120,19 @@ export const defaultGameConfig: GameConfig = {
     position: { x: 100, y: 400 }, // Leftmost corner with some padding
     size: 40,
     color: "#ffffff",
+  },
+  wave: {
+    preparationDuration: 10000, // 10 seconds
+    combatDuration: 90000, // 90 seconds (1.5 minutes)
+    intermissionDuration: 45000, // 45 seconds
+    difficultyScaling: {
+      healthMultiplier: 1.15, // +15% health per wave
+      speedMultiplier: 1.05, // +5% speed per wave
+      spawnRateMultiplier: 1.1, // +10% spawn rate per wave
+    },
+    bossWaves: [5, 10, 15, 20, 25, 30], // Boss every 5 waves
+    eliteWaveStart: 3, // Elite enemies start appearing on wave 3
+    baseEnemiesPerWave: 5, // Starting with 5 enemies per wave
+    enemiesPerWaveIncrease: 2, // +2 enemies per wave progression
   },
 };
