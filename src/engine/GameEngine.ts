@@ -184,25 +184,34 @@ export class GameEngine {
       for (let j = this.gameState.enemies.length - 1; j >= 0; j--) {
         const enemy = this.gameState.enemies[j];
         if (this.checkCollision(bullet, enemy)) {
-          // Create explosion
-          const explosionParticles = this.particleDomain.createExplosion(enemy.x, enemy.y, enemy.color);
-          this.gameState.particles.push(...explosionParticles);
+          // Apply damage to enemy
+          const damage = bullet.damage || 1;
+          enemy.health -= damage;
           
-          // Create resource drops using new 3-tier system
-          const resourceDrops = this.resourceDomain.createResourceDrop(enemy.x, enemy.y, 'basic');
-          this.gameState.resources.push(...resourceDrops);
-          
-          // Remove entities
+          // Remove bullet
           this.gameState.bullets.splice(i, 1);
-          this.gameState.enemies.splice(j, 1);
-          
-          // Give experience
-          this.gameState.player = this.playerDomain.gainExperience(this.gameState.player, enemy.experienceValue);
-          
-          // Track events
           this.weaponDomain.destroyBullet(bullet);
-          this.enemyDomain.destroyEnemy(enemy);
-          this.waveDomain.onEnemyDestroyed();
+          
+          // Check if enemy is dead
+          if (enemy.health <= 0) {
+            // Create explosion
+            const explosionParticles = this.particleDomain.createExplosion(enemy.x, enemy.y, enemy.color);
+            this.gameState.particles.push(...explosionParticles);
+            
+            // Create resource drops using new 3-tier system
+            const resourceDrops = this.resourceDomain.createResourceDrop(enemy.x, enemy.y, enemy.type);
+            this.gameState.resources.push(...resourceDrops);
+            
+            // Remove enemy
+            this.gameState.enemies.splice(j, 1);
+            
+            // Give experience
+            this.gameState.player = this.playerDomain.gainExperience(this.gameState.player, enemy.experienceValue);
+            
+            // Track events
+            this.enemyDomain.destroyEnemy(enemy);
+            this.waveDomain.onEnemyDestroyed();
+          }
           break;
         }
       }
@@ -444,5 +453,79 @@ export class GameEngine {
 
   getWaveTimeRemaining(): number {
     return this.waveDomain.getPhaseTimeRemaining();
+  }
+
+  spawnDevEnemy(enemyType: string): void {
+    // Create enemy using EnemyDomain
+    const canvasWidth = this.config.canvas.width;
+    const canvasHeight = this.config.canvas.height;
+    const currentWave = this.waveDomain.getCurrentWaveNumber();
+    
+    // Import EnemyType enum
+    let type: any;
+    switch (enemyType) {
+      case 'basic':
+        type = 'basic';
+        break;
+      case 'elite':
+        type = 'elite';
+        break;
+      case 'boss':
+        type = 'boss';
+        break;
+      default:
+        type = 'basic';
+    }
+    
+    // Manually create enemy (bypassing normal spawn logic)
+    const enemy = this.createDevEnemy(canvasWidth, canvasHeight, type, currentWave);
+    this.gameState.enemies.push(enemy);
+    
+    this.events.push({
+      type: 'DEV_ENEMY_SPAWNED',
+      data: { enemy, type: enemyType },
+      timestamp: Date.now()
+    });
+  }
+
+  private createDevEnemy(canvasWidth: number, canvasHeight: number, enemyType: string, waveNumber: number): any {
+    // Always spawn from right side
+    const x = canvasWidth + 20;
+    const y = Math.random() * canvasHeight;
+    
+    // Get enemy type configuration from config
+    let typeConfig: any;
+    switch (enemyType) {
+      case 'basic':
+        typeConfig = this.config.enemies.basic;
+        break;
+      case 'elite':
+        typeConfig = this.config.enemies.elite;
+        break;
+      case 'boss':
+        typeConfig = this.config.enemies.boss;
+        break;
+      default:
+        typeConfig = this.config.enemies.basic;
+    }
+    
+    // Apply wave scaling to base stats
+    const scaledHealth = Math.floor(typeConfig.health * Math.pow(1.15, waveNumber - 1));
+    const scaledSpeed = typeConfig.speed * Math.pow(1.05, waveNumber - 1);
+    
+    return {
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      type: enemyType,
+      size: typeConfig.size,
+      color: typeConfig.color,
+      speed: scaledSpeed + Math.random() * this.config.enemies.speedVariation,
+      health: scaledHealth,
+      maxHealth: scaledHealth,
+      experienceValue: typeConfig.experienceValue,
+      waveNumber
+    };
   }
 }

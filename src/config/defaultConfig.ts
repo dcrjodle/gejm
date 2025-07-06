@@ -90,14 +90,14 @@ export const defaultGameConfig: GameConfig = {
       dropRate: 0.8, // 80% chance per basic enemy kill
       minValue: 1,
       maxValue: 3,
-      maxCapacity: 999,
+      maxCapacity: 999999, // Unlimited
       color: "#00ffff",
       size: 6,
     },
     quantumCore: {
       dropRate: 0.3, // 30% chance per elite enemy kill
       value: 1,
-      maxCapacity: 99,
+      maxCapacity: 999999, // Unlimited
       color: "#ff00ff",
       size: 8,
     },
@@ -105,7 +105,7 @@ export const defaultGameConfig: GameConfig = {
       dropRate: 1.0, // 100% chance per boss enemy kill
       minValue: 1,
       maxValue: 2,
-      maxCapacity: 9,
+      maxCapacity: 999999, // Unlimited
       color: "#ffff00",
       size: 10,
     },

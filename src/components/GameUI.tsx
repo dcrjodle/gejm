@@ -23,6 +23,25 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
 
   // Allow skipping during preparation and upgrade intermission phases
   const canSkipWave = wavePhase === 'preparation' || wavePhase === 'upgrade_intermission';
+  
+  // Dev options for spawning enemies
+  const spawnBasicEnemy = () => {
+    if (gameEngine) {
+      gameEngine.spawnDevEnemy('basic');
+    }
+  };
+  
+  const spawnEliteEnemy = () => {
+    if (gameEngine) {
+      gameEngine.spawnDevEnemy('elite');
+    }
+  };
+  
+  const spawnBossEnemy = () => {
+    if (gameEngine) {
+      gameEngine.spawnDevEnemy('boss');
+    }
+  };
   const currentAmmo = gameEngine?.getCurrentAmmo() || 0;
   const maxAmmo = gameEngine?.getMaxAmmo() || 0;
   const baseState = gameEngine?.getGameState().base || null;
@@ -43,6 +62,31 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
         <div className={styles.wavePhase}>
           <span className={styles.phaseText}>{wavePhase.replace('_', ' ')}</span>
           <span className={styles.timeRemaining}>{formatTime(timeRemaining)}</span>
+        </div>
+      </div>
+      
+      {/* Dev Options and Next Wave Button in top right */}
+      <div className={styles.devPanel}>
+        {canSkipWave && (
+          <button
+            className={styles.nextWaveButton}
+            onClick={handleNextWave}
+          >
+            {wavePhase === 'preparation' ? 'Start Combat' : 'Next Wave'}
+          </button>
+        )}
+        
+        <div className={styles.enemySpawnButtons}>
+          <span className={styles.devLabel}>Dev Spawn:</span>
+          <button className={styles.devButton} onClick={spawnBasicEnemy}>
+            Basic
+          </button>
+          <button className={styles.devButton} onClick={spawnEliteEnemy}>
+            Elite
+          </button>
+          <button className={styles.devButton} onClick={spawnBossEnemy}>
+            Boss
+          </button>
         </div>
       </div>
       
@@ -87,21 +131,21 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
         <div className={styles.stat}>
           <span className={styles.icon}>💎</span>
           <span className={styles.value}>
-            {state.player.energyCrystals || 0}/999
+            {state.player.energyCrystals || 0}
           </span>
         </div>
 
         <div className={styles.stat}>
           <span className={styles.icon}>🔮</span>
           <span className={styles.value}>
-            {state.player.quantumCores || 0}/99
+            {state.player.quantumCores || 0}
           </span>
         </div>
 
         <div className={styles.stat}>
           <span className={styles.icon}>💫</span>
           <span className={styles.value}>
-            {state.player.essenceFragments || 0}/9
+            {state.player.essenceFragments || 0}
           </span>
         </div>
 
@@ -138,18 +182,6 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
           </div>
         </div>
 
-        <div className={styles.stat}>
-          <div className={styles.waveInfo}>
-            {canSkipWave && (
-              <button
-                className={styles.nextWaveButton}
-                onClick={handleNextWave}
-              >
-                {wavePhase === 'preparation' ? 'Start Combat' : 'Next Wave'}
-              </button>
-            )}
-          </div>
-        </div>
       </div>
 
       <div className={styles.controls}>
