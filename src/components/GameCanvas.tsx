@@ -37,6 +37,59 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ className, gameEngine }) => {
     }
   }, []);
 
+  // Handle mouse events for building placement
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !gameEngine) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      
+      // Update placement preview if in placement mode
+      gameEngine.updatePlacementPreview(x, y);
+    };
+
+    const handleMouseClick = (event: MouseEvent) => {
+      const gameState = gameEngine.getGameState();
+      
+      if (gameState.placementMode) {
+        event.preventDefault();
+        
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        if (event.button === 0) { // Left click - place building
+          const result = gameEngine.placeBuilding(x, y);
+          if (!result.success) {
+            console.log(result.message);
+          }
+        } else if (event.button === 2) { // Right click - cancel placement
+          gameEngine.cancelBuildingPlacement();
+        }
+      }
+    };
+
+    const handleContextMenu = (event: MouseEvent) => {
+      const gameState = gameEngine.getGameState();
+      if (gameState.placementMode) {
+        event.preventDefault(); // Prevent right-click context menu during placement
+      }
+    };
+
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mousedown', handleMouseClick);
+    canvas.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mousedown', handleMouseClick);
+      canvas.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [gameEngine]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

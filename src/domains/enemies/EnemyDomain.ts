@@ -138,15 +138,21 @@ export class EnemyDomain implements DomainInterface<Enemy> {
     // Different AI behaviors based on enemy type
     switch (enemy.type) {
       case EnemyType.BASIC:
-        // Basic enemies target the base directly
-        targetX = base.x;
-        targetY = base.y;
+        // Basic enemies target the player if close, otherwise base
+        const basicPlayerDistance = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
+        if (basicPlayerDistance < 150) { // Increased detection range for basic enemies
+          targetX = player.x;
+          targetY = player.y;
+        } else {
+          targetX = base.x;
+          targetY = base.y;
+        }
         break;
         
       case EnemyType.ELITE:
         // Elite enemies prefer to target the player if close, otherwise base
         const playerDistance = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
-        if (playerDistance < 60) { // Larger detection range than basic
+        if (playerDistance < 200) { // Increased detection range for elites
           targetX = player.x;
           targetY = player.y;
         } else {
@@ -158,7 +164,7 @@ export class EnemyDomain implements DomainInterface<Enemy> {
       case EnemyType.BOSS:
         // Boss enemies always target the player first
         const bossPlayerDistance = Math.sqrt((player.x - enemy.x) ** 2 + (player.y - enemy.y) ** 2);
-        if (bossPlayerDistance < 120) { // Very large detection range
+        if (bossPlayerDistance < 300) { // Increased detection range for bosses
           targetX = player.x;
           targetY = player.y;
         } else {

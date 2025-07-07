@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { GameState, GameAction } from '../types/game';
+import { GameAction } from '../types/game';
+import { GameState } from '../engine/types';
 import { Player } from '../engine/types/entities';
 
 const initialPlayer: Player = {
@@ -56,6 +57,17 @@ const initialState: GameState = {
   particles: [],
   resources: [],
   base: initialBase,
+  buildings: [],
+  powerConnections: [],
+  placementMode: false,
+  playerStats: {
+    health: { level: 0, value: 3 },
+    speed: { level: 0, value: 2.5 },
+    damage: { level: 0, value: 1 },
+    fireRate: { level: 0, value: 300 },
+    luck: { level: 0, value: 0 },
+    armor: { level: 0, value: 0 }
+  },
   gameRunning: true,
   gameOver: false,
   levelUp: false,

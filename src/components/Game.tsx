@@ -70,7 +70,7 @@ const Game: React.FC = () => {
 
   const isPaused = gameEngine?.isPausedState() || false;
   const wavePhase = gameEngine?.getWavePhase() || 'preparation';
-  const showUpgradeUI = wavePhase === 'preparation';
+  const showUpgradeUI = false; // Never show automatically
 
   return (
     <div className={styles.gameContainer}>

@@ -9,6 +9,7 @@ import { ParticleDomain } from '../domains/particles';
 import { ResourceDomain } from '../domains/resources';
 import { BaseDomain } from '../domains/base';
 import { WaveDomain } from '../domains/wave';
+import { BuildingDomain } from '../domains/buildings';
 
 export class GameEngine {
   private config: GameConfig;
@@ -21,6 +22,7 @@ export class GameEngine {
   private resourceDomain!: ResourceDomain;
   private baseDomain!: BaseDomain;
   private waveDomain!: WaveDomain;
+  private buildingDomain!: BuildingDomain;
   private gameState!: GameState;
   private events: GameEvent[] = [];
   private isPaused: boolean = false;
@@ -42,6 +44,7 @@ export class GameEngine {
     this.resourceDomain = new ResourceDomain(this.config.resources);
     this.baseDomain = new BaseDomain(this.config.base);
     this.waveDomain = new WaveDomain(this.config.wave);
+    this.buildingDomain = new BuildingDomain();
   }
 
   private initializeGameState(): void {
@@ -59,6 +62,17 @@ export class GameEngine {
       particles: [],
       resources: [],
       base,
+      buildings: [],
+      powerConnections: [],
+      placementMode: false,
+      playerStats: {
+        health: { level: 0, value: 3 },
+        speed: { level: 0, value: 2.5 },
+        damage: { level: 0, value: 1 },
+        fireRate: { level: 0, value: 300 },
+        luck: { level: 0, value: 0 },
+        armor: { level: 0, value: 0 }
+      },
       gameRunning: true,
       gameOver: false,
       levelUp: false,
@@ -133,6 +147,11 @@ export class GameEngine {
     const particleUpdate = this.particleDomain.update(this.gameState.particles, deltaTime, gameContext);
     this.gameState.particles = particleUpdate.entities;
     this.collectEvents(particleUpdate.events);
+
+    // Update buildings
+    const buildingUpdate = this.buildingDomain.update(this.gameState.buildings, deltaTime, gameContext);
+    this.gameState.buildings = buildingUpdate.entities;
+    this.collectEvents(buildingUpdate.events);
 
     // Update base
     const baseUpdate = this.baseDomain.update([this.gameState.base], deltaTime, gameContext);
@@ -300,6 +319,7 @@ export class GameEngine {
     this.resourceDomain.clearEvents();
     this.baseDomain.clearEvents();
     this.waveDomain.clearEvents();
+    this.buildingDomain.clearEvents();
   }
 
   render(ctx: CanvasRenderingContext2D): void {
@@ -310,7 +330,9 @@ export class GameEngine {
       this.gameState.bullets,
       this.gameState.particles,
       this.gameState.resources,
-      this.gameState.base
+      this.gameState.base,
+      this.gameState.buildings,
+      this.gameState.placementPreview
     );
   }
 
@@ -564,6 +586,181 @@ export class GameEngine {
     }
     
     return { success: result.success, message: result.message };
+  }
+
+  // Building placement methods
+  startBuildingPlacement(buildingTypeId: string): { success: boolean; message: string } {
+    const buildingConfig = this.buildingDomain.getBuildingConfig();
+    const buildingType = buildingConfig.buildings[buildingTypeId];
+    
+    if (!buildingType) {
+      return { success: false, message: 'Invalid building type' };
+    }
+
+    // Check if player level is sufficient
+    if (this.gameState.player.level < buildingType.requiredLevel) {
+      return { success: false, message: `Requires level ${buildingType.requiredLevel}` };
+    }
+
+    // Check if player can afford the building
+    const canAfford = this.gameState.player.energyCrystals >= buildingType.cost.energyCrystals &&
+                      this.gameState.player.quantumCores >= buildingType.cost.quantumCores &&
+                      this.gameState.player.essenceFragments >= buildingType.cost.essenceFragments;
+
+    if (!canAfford) {
+      return { success: false, message: 'Insufficient resources' };
+    }
+
+    this.gameState.selectedBuildingType = buildingTypeId;
+    this.gameState.placementMode = true;
+
+    this.events.push({
+      type: 'PLACEMENT_MODE_STARTED',
+      data: { buildingType: buildingTypeId },
+      timestamp: Date.now()
+    });
+
+    return { success: true, message: 'Building placement started' };
+  }
+
+  updatePlacementPreview(x: number, y: number): void {
+    if (!this.gameState.selectedBuildingType || !this.gameState.placementMode) return;
+
+    this.gameState.placementPreview = this.buildingDomain.createPlacementPreview(
+      this.gameState.selectedBuildingType,
+      x,
+      y,
+      this.gameState.buildings,
+      this.gameState.player.level,
+      this.gameState.canvasWidth,
+      this.gameState.canvasHeight
+    );
+  }
+
+  placeBuilding(x: number, y: number): { success: boolean; message: string } {
+    if (!this.gameState.selectedBuildingType || !this.gameState.placementMode) {
+      return { success: false, message: 'Not in placement mode' };
+    }
+
+    const result = this.buildingDomain.placeBuilding(
+      this.gameState.selectedBuildingType,
+      x,
+      y,
+      this.gameState.buildings,
+      this.gameState.player.level,
+      this.gameState.canvasWidth,
+      this.gameState.canvasHeight
+    );
+
+    if (result.success && result.building) {
+      // Deduct resources
+      const buildingConfig = this.buildingDomain.getBuildingConfig();
+      const buildingType = buildingConfig.buildings[this.gameState.selectedBuildingType];
+      
+      this.gameState.player.energyCrystals -= buildingType.cost.energyCrystals;
+      this.gameState.player.quantumCores -= buildingType.cost.quantumCores;
+      this.gameState.player.essenceFragments -= buildingType.cost.essenceFragments;
+
+      // Add building to game state
+      this.gameState.buildings.push(result.building);
+
+      // Clear placement mode
+      this.gameState.selectedBuildingType = undefined;
+      this.gameState.placementMode = false;
+      this.gameState.placementPreview = undefined;
+
+      this.events.push({
+        type: 'BUILDING_PLACED',
+        data: { building: result.building },
+        timestamp: Date.now()
+      });
+    }
+
+    return { success: result.success, message: result.message };
+  }
+
+  cancelBuildingPlacement(): void {
+    this.gameState.selectedBuildingType = undefined;
+    this.gameState.placementMode = false;
+    this.gameState.placementPreview = undefined;
+
+    this.events.push({
+      type: 'PLACEMENT_MODE_CANCELLED',
+      data: {},
+      timestamp: Date.now()
+    });
+  }
+
+  upgradePlayerStat(statId: string): { success: boolean; message: string } {
+    const currentLevel = this.gameState.playerStats[statId]?.level || 0;
+    const resources = {
+      energyCrystals: this.gameState.player.energyCrystals,
+      quantumCores: this.gameState.player.quantumCores,
+      essenceFragments: this.gameState.player.essenceFragments
+    };
+
+    const canUpgrade = this.buildingDomain.canUpgradePlayerStat(statId, currentLevel, resources);
+    
+    if (!canUpgrade.canUpgrade) {
+      return { success: false, message: canUpgrade.message };
+    }
+
+    // Deduct resources
+    if (canUpgrade.cost) {
+      this.gameState.player.energyCrystals -= canUpgrade.cost.energyCrystals;
+      this.gameState.player.quantumCores -= canUpgrade.cost.quantumCores;
+      this.gameState.player.essenceFragments -= canUpgrade.cost.essenceFragments;
+    }
+
+    // Upgrade the stat
+    const newLevel = currentLevel + 1;
+    const newValue = this.buildingDomain.getPlayerStatValue(statId, newLevel);
+    
+    this.gameState.playerStats[statId] = { level: newLevel, value: newValue };
+
+    // Apply stat effects to player
+    this.applyPlayerStatEffects();
+
+    this.events.push({
+      type: 'PLAYER_STAT_UPGRADED',
+      data: { statId, level: newLevel, value: newValue },
+      timestamp: Date.now()
+    });
+
+    return { success: true, message: 'Stat upgraded successfully' };
+  }
+
+  private applyPlayerStatEffects(): void {
+    // Apply health
+    const healthStat = this.gameState.playerStats.health;
+    if (healthStat) {
+      this.gameState.player.maxHealth = Math.floor(healthStat.value);
+      if (this.gameState.player.health > this.gameState.player.maxHealth) {
+        this.gameState.player.health = this.gameState.player.maxHealth;
+      }
+    }
+
+    // Apply speed
+    const speedStat = this.gameState.playerStats.speed;
+    if (speedStat) {
+      this.gameState.player.speed = speedStat.value;
+    }
+
+    // Apply damage
+    const damageStat = this.gameState.playerStats.damage;
+    if (damageStat) {
+      this.gameState.player.damage = Math.floor(damageStat.value);
+    }
+
+    // Apply fire rate
+    const fireRateStat = this.gameState.playerStats.fireRate;
+    if (fireRateStat) {
+      this.gameState.player.fireRate = Math.floor(fireRateStat.value);
+    }
+  }
+
+  getBuildingConfig() {
+    return this.buildingDomain.getBuildingConfig();
   }
 
   getConfig() {

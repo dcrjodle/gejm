@@ -79,15 +79,15 @@ export interface GameState {
 }
 
 export type GameAction = 
-  | { type: 'UPDATE_PLAYER'; payload: Partial<Player> }
-  | { type: 'ADD_BULLET'; payload: Bullet }
-  | { type: 'ADD_ENEMY'; payload: Enemy }
-  | { type: 'ADD_PARTICLE'; payload: Particle }
-  | { type: 'ADD_RESOURCE'; payload: Resource }
-  | { type: 'UPDATE_BULLETS'; payload: Bullet[] }
-  | { type: 'UPDATE_ENEMIES'; payload: Enemy[] }
-  | { type: 'UPDATE_PARTICLES'; payload: Particle[] }
-  | { type: 'UPDATE_RESOURCES'; payload: Resource[] }
+  | { type: 'UPDATE_PLAYER'; payload: Partial<import('../engine/types/entities').Player> }
+  | { type: 'ADD_BULLET'; payload: import('../engine/types/entities').Bullet }
+  | { type: 'ADD_ENEMY'; payload: import('../engine/types/entities').Enemy }
+  | { type: 'ADD_PARTICLE'; payload: import('../engine/types/entities').Particle }
+  | { type: 'ADD_RESOURCE'; payload: import('../engine/types/entities').Resource }
+  | { type: 'UPDATE_BULLETS'; payload: import('../engine/types/entities').Bullet[] }
+  | { type: 'UPDATE_ENEMIES'; payload: import('../engine/types/entities').Enemy[] }
+  | { type: 'UPDATE_PARTICLES'; payload: import('../engine/types/entities').Particle[] }
+  | { type: 'UPDATE_RESOURCES'; payload: import('../engine/types/entities').Resource[] }
   | { type: 'SET_GAME_RUNNING'; payload: boolean }
   | { type: 'SET_GAME_OVER'; payload: boolean }
   | { type: 'SET_LEVEL_UP'; payload: boolean }

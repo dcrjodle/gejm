@@ -198,7 +198,7 @@ export const defaultGameConfig: GameConfig = {
     }
   },
   wave: {
-    preparationDuration: 15000, // 15 seconds - extended for upgrades
+    preparationDuration: 30000, // 30 seconds - extended for upgrades and building
     combatDuration: 90000, // 90 seconds (1.5 minutes)
     difficultyScaling: {
       healthMultiplier: 1.15, // +15% health per wave

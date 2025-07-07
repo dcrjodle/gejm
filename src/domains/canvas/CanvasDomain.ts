@@ -1,4 +1,4 @@
-import { Player, Enemy, Bullet, Particle, Resource, Base, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
+import { Player, Enemy, Bullet, Particle, Resource, Base, Building, PlacementPreview, DomainInterface, DomainUpdate, GameEvent } from '../../engine/types';
 import { CanvasConfig } from '../../engine/types/config';
 
 export interface RenderableEntity {
@@ -41,7 +41,9 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     bullets: Bullet[],
     particles: Particle[],
     resources: Resource[] = [],
-    base?: Base
+    base?: Base,
+    buildings: Building[] = [],
+    placementPreview?: PlacementPreview
   ): void {
     // Clear canvas
     ctx.fillStyle = this.config.backgroundColor;
@@ -56,6 +58,14 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     if (base) {
       this.drawBase(ctx, base);
     }
+
+    // Draw buildings
+    buildings.forEach(building => {
+      this.drawBuilding(ctx, building);
+    });
+
+    // Draw power connections
+    this.drawPowerConnections(ctx, buildings);
 
     // Draw particles
     particles.forEach(particle => {
@@ -76,6 +86,11 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
     resources.forEach(resource => {
       this.drawResource(ctx, resource);
     });
+
+    // Draw placement preview
+    if (placementPreview) {
+      this.drawPlacementPreview(ctx, placementPreview);
+    }
 
     // Draw player
     this.drawPlayer(ctx, player);
@@ -278,5 +293,152 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
       width: this.config.width,
       height: this.config.height
     };
+  }
+
+  private drawBuilding(ctx: CanvasRenderingContext2D, building: Building): void {
+    let alpha = 1;
+    let extraGlow = 0;
+
+    // Handle construction phase
+    if (building.status === 'constructing' && building.constructionStartTime && building.constructionTime) {
+      const elapsed = Date.now() - building.constructionStartTime;
+      const progress = Math.min(elapsed / building.constructionTime, 1);
+      alpha = 0.3 + (progress * 0.7); // Fade in from 30% to 100%
+      
+      // Draw construction progress ring
+      ctx.beginPath();
+      ctx.arc(building.x, building.y, building.size / 2 + 5, 0, 2 * Math.PI * progress);
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    // Handle power status
+    if (building.status === 'unpowered') {
+      alpha = 0.6; // Dimmed when unpowered
+    } else if (building.status === 'powered') {
+      extraGlow = 5; // Extra glow when powered
+    }
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = building.color;
+    ctx.shadowColor = building.color;
+    ctx.shadowBlur = 10 + extraGlow;
+    
+    // Draw building shape based on type
+    const halfSize = building.size / 2;
+    if (building.typeId === 'pylon') {
+      // Draw pylon as circle
+      ctx.beginPath();
+      ctx.arc(building.x, building.y, halfSize, 0, 2 * Math.PI);
+      ctx.fill();
+    } else {
+      // Draw other buildings as squares
+      ctx.fillRect(
+        building.x - halfSize,
+        building.y - halfSize,
+        building.size,
+        building.size
+      );
+    }
+
+    // Draw health bar if damaged
+    if (building.health < building.maxHealth) {
+      const barWidth = building.size;
+      const barHeight = 4;
+      const healthPercent = building.health / building.maxHealth;
+      
+      // Background
+      ctx.fillStyle = '#333333';
+      ctx.fillRect(
+        building.x - barWidth / 2,
+        building.y - building.size / 2 - 8,
+        barWidth,
+        barHeight
+      );
+      
+      // Health bar
+      ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : 
+                     healthPercent > 0.2 ? '#ffff00' : '#ff0000';
+      ctx.fillRect(
+        building.x - barWidth / 2,
+        building.y - building.size / 2 - 8,
+        barWidth * healthPercent,
+        barHeight
+      );
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  private drawPowerConnections(ctx: CanvasRenderingContext2D, buildings: Building[]): void {
+    // Find all pylons and their connections
+    const pylons = buildings.filter(b => b.typeId === 'pylon' && b.status !== 'destroyed');
+    
+    for (const pylon of pylons) {
+      if (pylon.connectedTo && pylon.connectedTo.length > 0) {
+        for (const connectedId of pylon.connectedTo) {
+          const connectedBuilding = buildings.find(b => b.id === connectedId);
+          if (connectedBuilding) {
+            // Draw power line
+            ctx.beginPath();
+            ctx.moveTo(pylon.x, pylon.y);
+            ctx.lineTo(connectedBuilding.x, connectedBuilding.y);
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.globalAlpha = 0.7;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+    }
+  }
+
+  private drawPlacementPreview(ctx: CanvasRenderingContext2D, placementPreview: PlacementPreview): void {
+    const halfSize = 12; // Default preview size
+    const color = placementPreview.valid ? '#00ff0080' : '#ff000080'; // Semi-transparent green or red
+    
+    ctx.fillStyle = color;
+    ctx.strokeStyle = placementPreview.valid ? '#00ff00' : '#ff0000';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    
+    // Draw preview shape
+    if (placementPreview.typeId === 'pylon') {
+      // Circle for pylon
+      ctx.beginPath();
+      ctx.arc(placementPreview.x, placementPreview.y, halfSize, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      // Square for other buildings
+      ctx.fillRect(
+        placementPreview.x - halfSize,
+        placementPreview.y - halfSize,
+        halfSize * 2,
+        halfSize * 2
+      );
+      ctx.strokeRect(
+        placementPreview.x - halfSize,
+        placementPreview.y - halfSize,
+        halfSize * 2,
+        halfSize * 2
+      );
+    }
+    
+    ctx.setLineDash([]);
+    
+    // Draw conflict messages
+    if (!placementPreview.valid && placementPreview.conflicts.length > 0) {
+      ctx.fillStyle = '#ff0000';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      const message = placementPreview.conflicts[0]; // Show first conflict
+      ctx.fillText(message, placementPreview.x, placementPreview.y + halfSize + 20);
+    }
   }
 }
