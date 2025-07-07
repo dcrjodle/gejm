@@ -528,4 +528,41 @@ export class GameEngine {
       waveNumber
     };
   }
+
+  upgradeBase(upgradeType: string): { success: boolean; message: string } {
+    const result = this.baseDomain.upgradeBase(this.gameState.base, upgradeType, this.gameState.player);
+    
+    if (result.success) {
+      this.gameState.base = result.base;
+      this.gameState.player = result.player;
+      
+      this.events.push({
+        type: 'BASE_UPGRADE_SUCCESS',
+        data: { upgradeType, base: result.base, player: result.player },
+        timestamp: Date.now()
+      });
+    }
+    
+    return { success: result.success, message: result.message };
+  }
+
+  upgradePlayer(upgradeType: string): { success: boolean; message: string } {
+    const result = this.playerDomain.upgradePlayer(this.gameState.player, upgradeType);
+    
+    if (result.success) {
+      this.gameState.player = result.player;
+      
+      this.events.push({
+        type: 'PLAYER_UPGRADE_SUCCESS',
+        data: { upgradeType, player: result.player },
+        timestamp: Date.now()
+      });
+    }
+    
+    return { success: result.success, message: result.message };
+  }
+
+  getConfig() {
+    return this.config;
+  }
 }

@@ -11,6 +11,44 @@ export const defaultGameConfig: GameConfig = {
     experiencePerLevel: 10,
     healthPerLevel: 1,
     speedPerLevel: 0.15, // Reduced from 0.2 to match slower base speed
+    upgrades: {
+      health: {
+        levels: [4, 5, 7, 10], // Max health per level
+        costs: [
+          { energyCrystals: 30, quantumCores: 0, essenceFragments: 0 },
+          { energyCrystals: 60, quantumCores: 1, essenceFragments: 0 },
+          { energyCrystals: 120, quantumCores: 3, essenceFragments: 1 },
+          { energyCrystals: 250, quantumCores: 8, essenceFragments: 2 }
+        ]
+      },
+      speed: {
+        levels: [3.0, 3.5, 4.2, 5.0], // Movement speed per level
+        costs: [
+          { energyCrystals: 40, quantumCores: 0, essenceFragments: 0 },
+          { energyCrystals: 80, quantumCores: 2, essenceFragments: 0 },
+          { energyCrystals: 160, quantumCores: 5, essenceFragments: 1 },
+          { energyCrystals: 320, quantumCores: 12, essenceFragments: 3 }
+        ]
+      },
+      damage: {
+        levels: [2, 3, 4, 6], // Bullet damage per level
+        costs: [
+          { energyCrystals: 50, quantumCores: 1, essenceFragments: 0 },
+          { energyCrystals: 100, quantumCores: 3, essenceFragments: 0 },
+          { energyCrystals: 200, quantumCores: 8, essenceFragments: 2 },
+          { energyCrystals: 400, quantumCores: 20, essenceFragments: 5 }
+        ]
+      },
+      fireRate: {
+        levels: [250, 200, 150, 100], // Shoot cooldown in ms (lower = faster)
+        costs: [
+          { energyCrystals: 35, quantumCores: 0, essenceFragments: 0 },
+          { energyCrystals: 70, quantumCores: 2, essenceFragments: 0 },
+          { energyCrystals: 140, quantumCores: 6, essenceFragments: 1 },
+          { energyCrystals: 280, quantumCores: 15, essenceFragments: 4 }
+        ]
+      }
+    }
   },
   enemies: {
     spawnRate: 2000, // milliseconds
@@ -120,6 +158,44 @@ export const defaultGameConfig: GameConfig = {
     position: { x: 100, y: 400 }, // Leftmost corner with some padding
     size: 40,
     color: "#ffffff",
+    upgrades: {
+      health: {
+        levels: [150, 200, 300, 500], // Max health per level
+        costs: [
+          { energyCrystals: 50, quantumCores: 0, essenceFragments: 0 },
+          { energyCrystals: 100, quantumCores: 2, essenceFragments: 0 },
+          { energyCrystals: 200, quantumCores: 5, essenceFragments: 1 },
+          { energyCrystals: 400, quantumCores: 10, essenceFragments: 3 }
+        ]
+      },
+      armor: {
+        levels: [0.1, 0.2, 0.35, 0.5], // Damage reduction per level
+        costs: [
+          { energyCrystals: 75, quantumCores: 1, essenceFragments: 0 },
+          { energyCrystals: 150, quantumCores: 3, essenceFragments: 0 },
+          { energyCrystals: 300, quantumCores: 8, essenceFragments: 2 },
+          { energyCrystals: 600, quantumCores: 15, essenceFragments: 5 }
+        ]
+      },
+      turrets: {
+        levels: [1, 2, 3, 4], // Number of auto-turrets
+        costs: [
+          { energyCrystals: 100, quantumCores: 2, essenceFragments: 0 },
+          { energyCrystals: 200, quantumCores: 5, essenceFragments: 1 },
+          { energyCrystals: 400, quantumCores: 12, essenceFragments: 3 },
+          { energyCrystals: 800, quantumCores: 25, essenceFragments: 8 }
+        ]
+      },
+      shield: {
+        levels: [50, 100, 200, 400], // Shield HP per level
+        costs: [
+          { energyCrystals: 125, quantumCores: 3, essenceFragments: 0 },
+          { energyCrystals: 250, quantumCores: 8, essenceFragments: 1 },
+          { energyCrystals: 500, quantumCores: 20, essenceFragments: 4 },
+          { energyCrystals: 1000, quantumCores: 40, essenceFragments: 10 }
+        ]
+      }
+    }
   },
   wave: {
     preparationDuration: 10000, // 10 seconds

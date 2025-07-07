@@ -79,7 +79,15 @@ export class PlayerDomain implements DomainInterface<Player> {
       resources: 0, // Keep for backward compatibility
       energyCrystals: 0,
       quantumCores: 0,
-      essenceFragments: 0
+      essenceFragments: 0,
+      upgradeLevels: {
+        health: 0,
+        speed: 0,
+        damage: 0,
+        fireRate: 0
+      },
+      damage: 1,
+      fireRate: 300
     };
   }
 
@@ -256,5 +264,65 @@ export class PlayerDomain implements DomainInterface<Player> {
 
   private calculateExperienceToNext(level: number): number {
     return level * this.config.experiencePerLevel;
+  }
+
+  upgradePlayer(player: Player, upgradeType: string): { player: Player; success: boolean; message: string } {
+    const currentLevel = player.upgradeLevels[upgradeType as keyof typeof player.upgradeLevels];
+    const upgradeConfig = this.config.upgrades?.[upgradeType as keyof typeof this.config.upgrades];
+    
+    if (!upgradeConfig || currentLevel >= upgradeConfig.levels.length) {
+      return { player, success: false, message: 'Max level reached' };
+    }
+    
+    const cost = upgradeConfig.costs[currentLevel];
+    
+    // Check if player has enough resources
+    if (player.energyCrystals < cost.energyCrystals || 
+        player.quantumCores < cost.quantumCores || 
+        player.essenceFragments < cost.essenceFragments) {
+      return { player, success: false, message: 'Insufficient resources' };
+    }
+    
+    // Deduct resources
+    let updatedPlayer = {
+      ...player,
+      energyCrystals: player.energyCrystals - cost.energyCrystals,
+      quantumCores: player.quantumCores - cost.quantumCores,
+      essenceFragments: player.essenceFragments - cost.essenceFragments
+    };
+    
+    // Apply upgrade
+    const newLevel = currentLevel + 1;
+    updatedPlayer.upgradeLevels = {
+      ...player.upgradeLevels,
+      [upgradeType]: newLevel
+    };
+    
+    // Apply upgrade effects
+    switch (upgradeType) {
+      case 'health':
+        const newMaxHealth = upgradeConfig.levels[currentLevel];
+        const healthIncrease = newMaxHealth - updatedPlayer.maxHealth;
+        updatedPlayer.maxHealth = newMaxHealth;
+        updatedPlayer.health = Math.min(updatedPlayer.health + healthIncrease, newMaxHealth); // Increase current health too
+        break;
+      case 'speed':
+        updatedPlayer.speed = upgradeConfig.levels[currentLevel];
+        break;
+      case 'damage':
+        updatedPlayer.damage = upgradeConfig.levels[currentLevel];
+        break;
+      case 'fireRate':
+        updatedPlayer.fireRate = upgradeConfig.levels[currentLevel];
+        break;
+    }
+    
+    this.events.push({
+      type: 'PLAYER_UPGRADED',
+      data: { upgradeType, newLevel, cost },
+      timestamp: Date.now()
+    });
+    
+    return { player: updatedPlayer, success: true, message: `${upgradeType} upgraded to level ${newLevel}` };
   }
 }

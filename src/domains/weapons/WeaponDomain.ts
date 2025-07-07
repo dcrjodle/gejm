@@ -41,7 +41,8 @@ export class WeaponDomain implements DomainInterface<Bullet> {
 
   shoot(player: Player, targetX?: number, targetY?: number): Bullet | null {
     const now = Date.now();
-    if (now - this.lastShotTime > this.config.shootCooldown && this.currentAmmo > 0) {
+    const fireRate = player.fireRate || this.config.shootCooldown;
+    if (now - this.lastShotTime > fireRate && this.currentAmmo > 0) {
       const bullet = this.createBullet(player, targetX, targetY);
       this.lastShotTime = now;
       this.currentAmmo--;
@@ -84,7 +85,7 @@ export class WeaponDomain implements DomainInterface<Bullet> {
       vy,
       size: this.config.bulletSize,
       color: this.config.bulletColor,
-      damage: this.config.damage
+      damage: player.damage || this.config.damage
     };
   }
 

@@ -8,6 +8,7 @@ export interface PlayerConfig {
   experiencePerLevel: number;
   healthPerLevel: number;
   speedPerLevel: number;
+  upgrades?: PlayerUpgrades; // Make optional initially
 }
 
 export interface EnemyConfig {
@@ -116,6 +117,31 @@ export interface ResourceConfig {
   pickupDuration: number;
 }
 
+export interface UpgradeCost {
+  energyCrystals: number;
+  quantumCores: number;
+  essenceFragments: number;
+}
+
+export interface UpgradeLevel {
+  levels: number[];
+  costs: UpgradeCost[];
+}
+
+export interface PlayerUpgrades {
+  health: UpgradeLevel;
+  speed: UpgradeLevel;
+  damage: UpgradeLevel;
+  fireRate: UpgradeLevel;
+}
+
+export interface BaseUpgrades {
+  health: UpgradeLevel;
+  armor: UpgradeLevel;
+  turrets: UpgradeLevel;
+  shield: UpgradeLevel;
+}
+
 export interface BaseConfig {
   startingHealth: number;
   maxHealth: number;
@@ -124,6 +150,7 @@ export interface BaseConfig {
   position: { x: number; y: number };
   size: number;
   color: string;
+  upgrades: BaseUpgrades;
 }
 
 export interface WaveConfig {

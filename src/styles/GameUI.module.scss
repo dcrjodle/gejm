@@ -160,6 +160,12 @@ $text-shadow: 0 0 10px;
   font-weight: bold;
 }
 
+.baseStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .healthBar {
   display: flex;
   gap: 3px;
@@ -178,6 +184,43 @@ $text-shadow: 0 0 10px;
       $text-shadow $danger-neon,
       inset 0 0 5px rgba(255, 0, 68, 0.5);
   }
+}
+
+.shieldBar {
+  display: flex;
+  gap: 3px;
+}
+
+.shieldPoint {
+  width: 12px;
+  height: 12px;
+  border: 1px solid $primary-neon;
+  background: transparent;
+  box-shadow: $text-shadow $primary-neon;
+  
+  &.active {
+    background: $primary-neon;
+    box-shadow: 
+      $text-shadow $primary-neon,
+      inset 0 0 5px rgba(0, 255, 255, 0.5);
+  }
+}
+
+.upgradeIndicators {
+  display: flex;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.upgradeIcon {
+  color: $warning-neon;
+  text-shadow: $text-shadow $warning-neon;
+  font-size: 10px;
+  font-weight: bold;
+  background: rgba(255, 255, 0, 0.1);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid $warning-neon;
 }
 
 .xpBar {

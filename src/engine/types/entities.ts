@@ -1,5 +1,12 @@
 import { GameObject, Velocity } from './common';
 
+export interface PlayerUpgradeLevels {
+  health: number;
+  speed: number;
+  damage: number;
+  fireRate: number;
+}
+
 export interface Player extends GameObject, Velocity {
   health: number;
   maxHealth: number;
@@ -11,6 +18,9 @@ export interface Player extends GameObject, Velocity {
   energyCrystals: number;
   quantumCores: number;
   essenceFragments: number;
+  upgradeLevels: PlayerUpgradeLevels;
+  damage: number;
+  fireRate: number; // Shoot cooldown in ms
 }
 
 export enum EnemyType {
@@ -52,11 +62,22 @@ export interface Resource extends GameObject {
   pickupStartTime?: number;
 }
 
+export interface BaseUpgradeLevels {
+  health: number;
+  armor: number;
+  turrets: number;
+  shield: number;
+}
+
 export interface Base extends GameObject {
   health: number;
   maxHealth: number;
   repairRate: number;
   lastDamageTime: number;
+  upgradeLevels: BaseUpgradeLevels;
+  shield: number;
+  maxShield: number;
+  armor: number; // Damage reduction (0-1)
 }
 
 export interface GameEntities {

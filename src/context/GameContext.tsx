@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { GameState, GameAction, Player } from '../types/game';
+import { GameState, GameAction } from '../types/game';
+import { Player } from '../engine/types/entities';
 
 const initialPlayer: Player = {
   x: 600,
@@ -17,7 +18,15 @@ const initialPlayer: Player = {
   resources: 0,
   energyCrystals: 0,
   quantumCores: 0,
-  essenceFragments: 0
+  essenceFragments: 0,
+  upgradeLevels: {
+    health: 0,
+    speed: 0,
+    damage: 0,
+    fireRate: 0
+  },
+  damage: 1,
+  fireRate: 300
 };
 
 const initialBase = {
@@ -28,7 +37,16 @@ const initialBase = {
   health: 100,
   maxHealth: 100,
   repairRate: 2,
-  lastDamageTime: 0
+  lastDamageTime: 0,
+  upgradeLevels: {
+    health: 0,
+    armor: 0,
+    turrets: 0,
+    shield: 0
+  },
+  shield: 0,
+  maxShield: 0,
+  armor: 0
 };
 
 const initialState: GameState = {

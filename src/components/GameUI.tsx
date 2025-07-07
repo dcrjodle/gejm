@@ -166,19 +166,53 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
 
         <div className={styles.stat}>
           <span className={styles.icon}>🏠</span>
-          <div className={styles.healthBar}>
-            {baseState &&
-              Array.from(
-                { length: Math.ceil(baseState.maxHealth / 10) },
-                (_, i) => (
-                  <div
-                    key={i}
-                    className={`${styles.healthPoint} ${
-                      (i + 1) * 10 <= baseState.health ? styles.active : ""
-                    }`}
-                  />
-                )
-              )}
+          <div className={styles.baseStatus}>
+            {/* Base Health */}
+            <div className={styles.healthBar}>
+              {baseState &&
+                Array.from(
+                  { length: Math.ceil(baseState.maxHealth / 10) },
+                  (_, i) => (
+                    <div
+                      key={i}
+                      className={`${styles.healthPoint} ${
+                        (i + 1) * 10 <= baseState.health ? styles.active : ""
+                      }`}
+                    />
+                  )
+                )}
+            </div>
+            {/* Base Shield */}
+            {baseState && baseState.maxShield > 0 && (
+              <div className={styles.shieldBar}>
+                {Array.from(
+                  { length: Math.ceil(baseState.maxShield / 10) },
+                  (_, i) => (
+                    <div
+                      key={i}
+                      className={`${styles.shieldPoint} ${
+                        (i + 1) * 10 <= baseState.shield ? styles.active : ""
+                      }`}
+                    />
+                  )
+                )}
+              </div>
+            )}
+            {/* Base Upgrades Indicator */}
+            {baseState && (baseState.upgradeLevels.armor > 0 || baseState.upgradeLevels.turrets > 0) && (
+              <div className={styles.upgradeIndicators}>
+                {baseState.upgradeLevels.armor > 0 && (
+                  <span className={styles.upgradeIcon} title={`Armor Level ${baseState.upgradeLevels.armor}`}>
+                    🛡️{baseState.upgradeLevels.armor}
+                  </span>
+                )}
+                {baseState.upgradeLevels.turrets > 0 && (
+                  <span className={styles.upgradeIcon} title={`Turrets Level ${baseState.upgradeLevels.turrets}`}>
+                    🔫{baseState.upgradeLevels.turrets}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -192,6 +226,10 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
         <div className={styles.controlGroup}>
           <span className={styles.controlLabel}>Shoot</span>
           <span className={styles.controlKeys}>SPACE / CLICK</span>
+        </div>
+        <div className={styles.controlGroup}>
+          <span className={styles.controlLabel}>Upgrades</span>
+          <span className={styles.controlKeys}>U</span>
         </div>
       </div>
     </div>

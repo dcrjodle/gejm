@@ -8,6 +8,7 @@ import GameOverlay from './GameOverlay';
 import CustomCursor from './CustomCursor';
 import DevControls from './DevControls';
 import PauseMenu from './PauseMenu';
+import UpgradeUI from './UpgradeUI';
 import styles from '../styles/Game.module.scss';
 
 const Game: React.FC = () => {
@@ -15,6 +16,7 @@ const Game: React.FC = () => {
   const { gameEngine, configService } = useGameLoop(keysRef);
   const windowSize = useWindowSize();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const [manualUpgradeOpen, setManualUpgradeOpen] = React.useState(false);
   
   // Update canvas size when window size changes
   useEffect(() => {
@@ -22,6 +24,18 @@ const Game: React.FC = () => {
       configService.adjustCanvasSize(windowSize.width, windowSize.height);
     }
   }, [windowSize.width, windowSize.height, configService]);
+
+  // Handle hotkey for upgrade panel (U key)
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'u') {
+        setManualUpgradeOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const handleResumeGame = () => {
     if (gameEngine) {
@@ -55,6 +69,8 @@ const Game: React.FC = () => {
   };
 
   const isPaused = gameEngine?.isPausedState() || false;
+  const wavePhase = gameEngine?.getWavePhase() || 'preparation';
+  const showUpgradeUI = wavePhase === 'upgrade_intermission';
 
   return (
     <div className={styles.gameContainer}>
@@ -70,6 +86,12 @@ const Game: React.FC = () => {
           isVisible={isPaused}
           onResume={handleResumeGame}
           onRestart={handleRestartGame}
+        />
+        <UpgradeUI 
+          gameEngine={gameEngine}
+          visible={showUpgradeUI && !isPaused}
+          manualOpen={manualUpgradeOpen && !isPaused}
+          onClose={() => setManualUpgradeOpen(false)}
         />
         <CustomCursor />
       </div>
