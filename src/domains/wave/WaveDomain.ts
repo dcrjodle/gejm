@@ -84,24 +84,7 @@ export class WaveDomain implements DomainInterface<WaveState> {
         break;
 
       case WavePhase.COMBAT:
-        // Combat → Upgrade Intermission
-        this.waveState.phase = WavePhase.UPGRADE_INTERMISSION;
-        this.waveState.phaseDuration = this.config.intermissionDuration;
-        this.waveState.phaseStartTime = currentTime;
-        this.waveState.waveComplete = true;
-        
-        this.events.push({
-          type: 'WAVE_COMPLETED',
-          data: { 
-            wave: this.waveState.currentWave,
-            enemiesDefeated: this.waveState.enemiesSpawned 
-          },
-          timestamp: currentTime
-        });
-        break;
-
-      case WavePhase.UPGRADE_INTERMISSION:
-        // Intermission → Next Wave Preparation
+        // Combat → Next Wave Preparation
         this.waveState.currentWave++;
         this.waveState.phase = WavePhase.PREPARATION;
         this.waveState.phaseDuration = this.config.preparationDuration;
@@ -109,8 +92,17 @@ export class WaveDomain implements DomainInterface<WaveState> {
         this.waveState.totalEnemiesInWave = this.calculateEnemiesForWave(this.waveState.currentWave);
         this.waveState.enemiesSpawned = 0;
         this.waveState.enemiesAlive = 0;
-        this.waveState.waveComplete = false;
+        this.waveState.waveComplete = true;
         this.waveState.nextWaveReady = false;
+        
+        this.events.push({
+          type: 'WAVE_COMPLETED',
+          data: { 
+            wave: this.waveState.currentWave - 1,
+            enemiesDefeated: this.waveState.enemiesSpawned 
+          },
+          timestamp: currentTime
+        });
         
         this.events.push({
           type: 'WAVE_PREPARATION_STARTED',
@@ -129,15 +121,12 @@ export class WaveDomain implements DomainInterface<WaveState> {
     if (this.waveState.phase === WavePhase.PREPARATION) {
       // Skip preparation phase and start combat immediately
       this.transitionToNextPhase();
-    } else if (this.waveState.phase === WavePhase.UPGRADE_INTERMISSION) {
-      // Skip remaining intermission time and go to next wave
-      this.transitionToNextPhase();
     }
     // During combat phase, we don't allow skipping
   }
 
   isWaveReadyToStart(): boolean {
-    return this.waveState.phase === WavePhase.UPGRADE_INTERMISSION;
+    return this.waveState.phase === WavePhase.PREPARATION;
   }
 
   getCurrentWaveInfo(): WaveState {

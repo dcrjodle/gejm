@@ -198,9 +198,8 @@ export const defaultGameConfig: GameConfig = {
     }
   },
   wave: {
-    preparationDuration: 10000, // 10 seconds
+    preparationDuration: 15000, // 15 seconds - extended for upgrades
     combatDuration: 90000, // 90 seconds (1.5 minutes)
-    intermissionDuration: 45000, // 45 seconds
     difficultyScaling: {
       healthMultiplier: 1.15, // +15% health per wave
       speedMultiplier: 1.05, // +5% speed per wave

@@ -70,7 +70,7 @@ const Game: React.FC = () => {
 
   const isPaused = gameEngine?.isPausedState() || false;
   const wavePhase = gameEngine?.getWavePhase() || 'preparation';
-  const showUpgradeUI = wavePhase === 'upgrade_intermission';
+  const showUpgradeUI = wavePhase === 'preparation';
 
   return (
     <div className={styles.gameContainer}>

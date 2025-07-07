@@ -156,7 +156,6 @@ export interface BaseConfig {
 export interface WaveConfig {
   preparationDuration: number; // 10 seconds
   combatDuration: number; // 60-120 seconds  
-  intermissionDuration: number; // 30-60 seconds
   difficultyScaling: {
     healthMultiplier: number; // +15% per wave
     speedMultiplier: number; // +5% per wave

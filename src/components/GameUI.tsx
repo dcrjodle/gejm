@@ -21,8 +21,8 @@ const GameUI: React.FC<GameUIProps> = ({ gameEngine }) => {
     }
   };
 
-  // Allow skipping during preparation and upgrade intermission phases
-  const canSkipWave = wavePhase === 'preparation' || wavePhase === 'upgrade_intermission';
+  // Allow skipping during preparation phase
+  const canSkipWave = wavePhase === 'preparation';
   
   // Dev options for spawning enemies
   const spawnBasicEnemy = () => {

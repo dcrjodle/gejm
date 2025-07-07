@@ -36,6 +36,8 @@ export interface Enemy extends GameObject, Velocity {
   maxHealth: number;
   experienceValue: number;
   waveNumber: number;
+  hitTime?: number;
+  hitFlashDuration?: number;
 }
 
 export interface Bullet extends GameObject, Velocity {

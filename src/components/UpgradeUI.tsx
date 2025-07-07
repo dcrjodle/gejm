@@ -205,16 +205,16 @@ const UpgradeUI: React.FC<UpgradeUIProps> = ({ gameEngine, visible, manualOpen =
                   {getCurrentValue(upgradeType)} → {getNextValue(upgradeType)}
                 </div>
                 <div className={styles.upgradeCost}>
-                  <span className={styles.costItem}>
+                  <span className={`${styles.costItem} ${canAfford(upgradeInfo.cost) ? styles.affordable : ''}`}>
                     💎 {upgradeInfo.cost.energyCrystals}
                   </span>
                   {upgradeInfo.cost.quantumCores > 0 && (
-                    <span className={styles.costItem}>
+                    <span className={`${styles.costItem} ${canAfford(upgradeInfo.cost) ? styles.affordable : ''}`}>
                       🔮 {upgradeInfo.cost.quantumCores}
                     </span>
                   )}
                   {upgradeInfo.cost.essenceFragments > 0 && (
-                    <span className={styles.costItem}>
+                    <span className={`${styles.costItem} ${canAfford(upgradeInfo.cost) ? styles.affordable : ''}`}>
                       💫 {upgradeInfo.cost.essenceFragments}
                     </span>
                   )}

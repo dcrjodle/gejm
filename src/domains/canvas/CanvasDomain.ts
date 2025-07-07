@@ -116,14 +116,39 @@ export class CanvasDomain implements DomainInterface<RenderableEntity> {
   }
 
   private drawEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy): void {
-    ctx.fillStyle = enemy.color;
-    ctx.shadowColor = enemy.color;
-    ctx.shadowBlur = 10;
+    let fillColor = enemy.color;
+    let shadowBlur = 10;
+    let scale = 1;
+    
+    // Check if enemy was recently hit
+    if (enemy.hitTime && enemy.hitFlashDuration) {
+      const timeSinceHit = Date.now() - enemy.hitTime;
+      if (timeSinceHit < enemy.hitFlashDuration) {
+        // Flash effect - alternate between white and normal color
+        const flashInterval = 25; // Flash every 25ms
+        const flashPhase = Math.floor(timeSinceHit / flashInterval) % 2;
+        if (flashPhase === 0) {
+          fillColor = '#ffffff';
+          shadowBlur = 20;
+          scale = 1.2;
+        } else {
+          fillColor = enemy.color;
+          shadowBlur = 15;
+          scale = 1.1;
+        }
+      }
+    }
+    
+    ctx.fillStyle = fillColor;
+    ctx.shadowColor = fillColor;
+    ctx.shadowBlur = shadowBlur;
+    
+    const size = enemy.size * scale;
     ctx.fillRect(
-      enemy.x - enemy.size / 2,
-      enemy.y - enemy.size / 2,
-      enemy.size,
-      enemy.size
+      enemy.x - size / 2,
+      enemy.y - size / 2,
+      size,
+      size
     );
     ctx.shadowBlur = 0;
   }

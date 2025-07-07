@@ -188,6 +188,10 @@ export class GameEngine {
           const damage = bullet.damage || 1;
           enemy.health -= damage;
           
+          // Add hit feedback
+          enemy.hitTime = Date.now();
+          enemy.hitFlashDuration = 150; // 150ms flash duration
+          
           // Remove bullet
           this.gameState.bullets.splice(i, 1);
           this.weaponDomain.destroyBullet(bullet);
