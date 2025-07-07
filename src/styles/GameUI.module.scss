@@ -76,50 +76,92 @@ $text-shadow: 0 0 10px;
   right: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   pointer-events: auto;
+  z-index: 1000;
 }
 
-.enemySpawnButtons {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  background: rgba(0, 17, 17, 0.9);
-  padding: 10px;
-  border: 1px solid $accent-neon;
-  border-radius: 4px;
-  box-shadow: $text-shadow $accent-neon;
-}
-
-.devLabel {
+.devToggleButton {
+  background: rgba(0, 0, 17, 0.9);
+  border: 1px solid $warning-neon;
   color: $warning-neon;
-  text-shadow: $text-shadow $warning-neon;
+  padding: 5px 15px;
   font-size: 12px;
   font-weight: bold;
+  text-shadow: $text-shadow $warning-neon;
+  box-shadow: $text-shadow $warning-neon;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0 0 5px 5px;
+  
+  &:hover {
+    background: rgba(255, 255, 0, 0.1);
+    box-shadow: 
+      $text-shadow $warning-neon,
+      inset 0 0 10px rgba(255, 255, 0, 0.2);
+  }
+}
+
+.devControlsPanel {
+  background: rgba(0, 0, 17, 0.95);
+  border: 1px solid $warning-neon;
+  box-shadow: 
+    $text-shadow $warning-neon,
+    inset 0 0 20px rgba(255, 255, 0, 0.1);
+  padding: 15px;
+  min-width: 250px;
+  margin-top: 5px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.devSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.devSectionTitle {
+  color: $warning-neon;
+  text-shadow: $text-shadow $warning-neon;
+  font-size: 11px;
+  font-weight: bold;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.devButtonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .devButton {
   background: transparent;
-  border: 1px solid $secondary-neon;
-  color: $secondary-neon;
-  padding: 4px 8px;
+  border: 1px solid $accent-neon;
+  color: $accent-neon;
+  padding: 6px 10px;
   font-size: 10px;
   font-weight: bold;
-  text-shadow: $text-shadow $secondary-neon;
-  box-shadow: $text-shadow $secondary-neon;
+  text-shadow: $text-shadow $accent-neon;
+  box-shadow: $text-shadow $accent-neon;
   cursor: pointer;
   transition: all 0.2s ease;
+  border-radius: 3px;
   
   &:hover {
-    background: rgba(255, 0, 102, 0.1);
+    background: rgba(0, 255, 0, 0.1);
     box-shadow: 
-      $text-shadow $secondary-neon,
-      inset 0 0 10px rgba(255, 0, 102, 0.3);
+      $text-shadow $accent-neon,
+      inset 0 0 10px rgba(0, 255, 0, 0.2);
   }
   
   &:active {
-    background: rgba(255, 0, 102, 0.2);
+    background: rgba(0, 255, 0, 0.2);
     transform: translateY(1px);
   }
 }
@@ -130,7 +172,7 @@ $text-shadow: 0 0 10px;
   left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
   pointer-events: auto;
 }
 
@@ -301,13 +343,14 @@ $text-shadow: 0 0 10px;
   background: transparent;
   border: 1px solid $accent-neon;
   color: $accent-neon;
-  padding: 4px 8px;
-  font-size: 10px;
+  padding: 6px 12px;
+  font-size: 11px;
   font-weight: bold;
   text-shadow: $text-shadow $accent-neon;
   box-shadow: $text-shadow $accent-neon;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 8px;
   
   &:hover {
     background: rgba(0, 255, 0, 0.1);

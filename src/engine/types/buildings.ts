@@ -73,9 +73,10 @@ export interface GameStateWithBuildings {
 
 // Events for building system
 export interface BuildingEvent {
-  type: 'BUILDING_PLACED' | 'BUILDING_UPGRADED' | 'BUILDING_DESTROYED' | 'BUILDING_POWERED' | 'BUILDING_UNPOWERED' | 'PLACEMENT_MODE_STARTED' | 'PLACEMENT_MODE_CANCELLED';
+  type: 'BUILDING_PLACED' | 'BUILDING_UPGRADED' | 'BUILDING_DESTROYED' | 'BUILDING_POWERED' | 'BUILDING_UNPOWERED' | 'PLACEMENT_MODE_STARTED' | 'PLACEMENT_MODE_CANCELLED' | 'TURRET_FIRED';
   buildingId?: string;
   buildingType?: string;
   position?: { x: number; y: number };
+  data?: any;
   timestamp: number;
 }

@@ -152,6 +152,14 @@ export class GameEngine {
     const buildingUpdate = this.buildingDomain.update(this.gameState.buildings, deltaTime, gameContext);
     this.gameState.buildings = buildingUpdate.entities;
     this.collectEvents(buildingUpdate.events);
+    
+    // Handle turret firing events
+    const turretFireEvents = buildingUpdate.events?.filter(event => event.type === 'TURRET_FIRED') || [];
+    turretFireEvents.forEach(event => {
+      if (event.data?.bullet) {
+        this.gameState.bullets.push(event.data.bullet);
+      }
+    });
 
     // Update base
     const baseUpdate = this.baseDomain.update([this.gameState.base], deltaTime, gameContext);

@@ -241,11 +241,12 @@ export class BuildingDomain implements DomainInterface<Building> {
             damage: turret.effects?.damage || 1
           };
 
-          // Add bullet to game state (this would need to be handled by the game engine)
+          // Add bullet to game state via events
           this.events.push({
-            type: 'BUILDING_PLACED', // Temporary - we'd need a TURRET_FIRED event
+            type: 'TURRET_FIRED',
             buildingId: turret.id,
-            timestamp: now
+            timestamp: now,
+            data: { bullet }
           } as BuildingEvent);
 
           turret.lastFireTime = now;

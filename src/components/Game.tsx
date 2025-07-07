@@ -6,7 +6,6 @@ import GameCanvas from './GameCanvas';
 import GameUI from './GameUI';
 import GameOverlay from './GameOverlay';
 import CustomCursor from './CustomCursor';
-import DevControls from './DevControls';
 import PauseMenu from './PauseMenu';
 import UpgradeUI from './UpgradeUI';
 import styles from '../styles/Game.module.scss';
@@ -74,7 +73,6 @@ const Game: React.FC = () => {
 
   return (
     <div className={styles.gameContainer}>
-      <DevControls gameEngine={gameEngine} />
       <div className={styles.gameWrapper}>
         <GameCanvas 
           className={styles.gameCanvas} 
