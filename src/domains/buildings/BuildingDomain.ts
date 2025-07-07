@@ -17,6 +17,9 @@ export class BuildingDomain implements DomainInterface<Building> {
     // Update power connections
     this.updatePowerConnections(updatedBuildings, gameState.powerConnections || []);
     
+    // Update power status after connections are established
+    this.updateBuildingPowerStatus(updatedBuildings);
+    
     // Handle turret firing
     this.handleTurretFiring(updatedBuildings, gameState);
 
@@ -143,16 +146,7 @@ export class BuildingDomain implements DomainInterface<Building> {
       }
     }
 
-    // Update power status
-    if (building.status === BuildingStatus.ACTIVE) {
-      const buildingType = this.config.buildings[building.typeId];
-      if (buildingType.requiresPower) {
-        const isPowered = building.poweredBy && building.poweredBy.length > 0;
-        updatedBuilding.status = isPowered ? BuildingStatus.POWERED : BuildingStatus.UNPOWERED;
-      } else {
-        updatedBuilding.status = BuildingStatus.POWERED; // Non-power buildings are always "powered"
-      }
-    }
+    // Power status will be updated after power connections are established
 
     return updatedBuilding;
   }
@@ -167,6 +161,7 @@ export class BuildingDomain implements DomainInterface<Building> {
     // Find all pylons
     const pylons = buildings.filter(b => this.config.buildings[b.typeId]?.powerGeneration && b.status !== BuildingStatus.DESTROYED);
     const powerConsumers = buildings.filter(b => this.config.buildings[b.typeId]?.requiresPower && b.status !== BuildingStatus.DESTROYED);
+    
 
     // For each pylon, find nearby buildings to power
     pylons.forEach(pylon => {
@@ -194,6 +189,20 @@ export class BuildingDomain implements DomainInterface<Building> {
         consumer.poweredBy.push(pylon.id);
         pylon.connectedTo.push(consumer.id);
         connections++;
+      }
+    });
+  }
+
+  private updateBuildingPowerStatus(buildings: Building[]): void {
+    buildings.forEach(building => {
+      if (building.status === BuildingStatus.ACTIVE) {
+        const buildingType = this.config.buildings[building.typeId];
+        if (buildingType.requiresPower) {
+          const isPowered = building.poweredBy && building.poweredBy.length > 0;
+          building.status = isPowered ? BuildingStatus.POWERED : BuildingStatus.UNPOWERED;
+        } else {
+          building.status = BuildingStatus.POWERED; // Non-power buildings are always "powered"
+        }
       }
     });
   }
